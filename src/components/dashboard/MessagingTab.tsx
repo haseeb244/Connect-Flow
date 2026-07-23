@@ -28,11 +28,11 @@ export const MessagingTab: React.FC = () => {
   const [directChannel, setDirectChannel] = useState<ChannelType>('sms');
   const [directContent, setDirectContent] = useState('');
 
-  const filteredLogs = messageLogs.filter(log => {
+  const filteredLogs = (messageLogs || []).filter(log => {
     const matchesChannel = channelFilter === 'all' || log.channel === channelFilter;
-    const matchesSearch = log.recipientName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          log.recipientPhoneOrEmail.includes(searchQuery) ||
-                          log.content.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (log.recipientName || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (log.recipientPhoneOrEmail || '').includes(searchQuery) ||
+                          (log.content || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesChannel && matchesSearch;
   });
 
@@ -209,7 +209,7 @@ export const MessagingTab: React.FC = () => {
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none bg-white font-bold"
                 >
                   <option value="">-- Choose from Directory --</option>
-                  {contacts.map(c => (
+                  {(contacts || []).map(c => (
                     <option key={c.id} value={c.id}>{c.name} ({c.phone})</option>
                   ))}
                 </select>

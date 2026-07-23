@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications, onOpenCampa
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = (notifications || []).filter(n => !n.read).length;
 
   const rolesList: { role: UserRole; label: string; desc: string; icon: any }[] = [
     { role: 'super_admin', label: 'Super Admin', desc: 'System-wide control & multi-tenant view', icon: ShieldCheck },
@@ -222,7 +222,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications, onOpenCampa
               </button>
               <div className="border-t border-[#F2F0EB] my-1"></div>
               <button
-                onClick={() => { setPublicView(true); setAuthMode('login'); setAuthModalOpen(true); setProfileDropdownOpen(false); }}
+                onClick={() => {
+                  localStorage.removeItem('cf_is_logged_in');
+                  setPublicView(true);
+                  setAuthMode('login');
+                  setAuthModalOpen(false);
+                  setProfileDropdownOpen(false);
+                }}
                 className="w-full text-left px-3.5 py-2 text-xs text-rose-700 hover:bg-rose-50 flex items-center gap-2"
               >
                 <LogOut className="w-3.5 h-3.5 text-rose-600" />

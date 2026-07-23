@@ -26,7 +26,7 @@ export const CampaignsTab: React.FC<CampaignsTabProps> = ({ onOpenCampaignWizard
   const { campaigns, updateCampaignStatus, runCampaignSimulation } = useApp();
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const filtered = campaigns.filter(c => statusFilter === 'all' || c.status === statusFilter);
+  const filtered = (campaigns || []).filter(c => statusFilter === 'all' || c.status === statusFilter);
 
   const getChannelBadge = (ch: string) => {
     switch (ch) {
@@ -63,25 +63,25 @@ export const CampaignsTab: React.FC<CampaignsTabProps> = ({ onOpenCampaignWizard
           onClick={() => setStatusFilter('all')}
           className={`px-3 py-1.5 rounded-lg transition-colors ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-100'}`}
         >
-          All ({campaigns.length})
+          All ({(campaigns || []).length})
         </button>
         <button
           onClick={() => setStatusFilter('scheduled')}
           className={`px-3 py-1.5 rounded-lg transition-colors ${statusFilter === 'scheduled' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-100'}`}
         >
-          Scheduled ({campaigns.filter(c => c.status === 'scheduled').length})
+          Scheduled ({(campaigns || []).filter(c => c.status === 'scheduled').length})
         </button>
         <button
           onClick={() => setStatusFilter('running')}
           className={`px-3 py-1.5 rounded-lg transition-colors ${statusFilter === 'running' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-100'}`}
         >
-          Running ({campaigns.filter(c => c.status === 'running').length})
+          Running ({(campaigns || []).filter(c => c.status === 'running').length})
         </button>
         <button
           onClick={() => setStatusFilter('completed')}
           className={`px-3 py-1.5 rounded-lg transition-colors ${statusFilter === 'completed' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-100'}`}
         >
-          Completed ({campaigns.filter(c => c.status === 'completed').length})
+          Completed ({(campaigns || []).filter(c => c.status === 'completed').length})
         </button>
       </div>
 

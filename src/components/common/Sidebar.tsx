@@ -32,12 +32,12 @@ export const Sidebar: React.FC = () => {
     setPublicView
   } = useApp();
 
-  const activeCampaignsCount = campaigns.filter(c => c.status === 'scheduled' || c.status === 'running').length;
-  const activeRulesCount = automationRules.filter(r => r.isActive).length;
+  const activeCampaignsCount = (campaigns || []).filter(c => c.status === 'scheduled' || c.status === 'running').length;
+  const activeRulesCount = (automationRules || []).filter(r => r.isActive).length;
 
   const mainNavItems = [
     { id: 'overview' as DashboardTab, label: 'Overview', icon: LayoutDashboard },
-    { id: 'contacts' as DashboardTab, label: 'Contacts & Groups', icon: Users, badge: contacts.length },
+    { id: 'contacts' as DashboardTab, label: 'Contacts & Groups', icon: Users, badge: (contacts || []).length },
     { id: 'templates' as DashboardTab, label: 'Message Templates', icon: FileText },
     { id: 'campaigns' as DashboardTab, label: 'Campaigns', icon: Send, badge: activeCampaignsCount > 0 ? `${activeCampaignsCount} Active` : undefined, badgeColor: 'bg-[#8A9A5B] text-white' },
     { id: 'voice_calls' as DashboardTab, label: 'Voice Calling', icon: PhoneCall },

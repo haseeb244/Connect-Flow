@@ -29,7 +29,7 @@ export const TemplatesTab: React.FC = () => {
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
 
-  const filtered = templates.filter(t => selectedCategory === 'all' || t.category === selectedCategory);
+  const filtered = (templates || []).filter(t => selectedCategory === 'all' || t.category === selectedCategory);
 
   const handleCreateTemplate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +123,7 @@ export const TemplatesTab: React.FC = () => {
 
               {/* Variable Tokens */}
               <div className="mt-3 flex flex-wrap gap-1">
-                {tpl.variables.map((v, i) => (
+                {(tpl.variables || []).map((v, i) => (
                   <span key={i} className="text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60 px-2 py-0.5 rounded">
                     &#123;&#123;{v}&#125;&#125;
                   </span>

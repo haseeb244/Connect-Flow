@@ -17,12 +17,12 @@ export const SuperAdminTab: React.FC = () => {
   const { allBusinesses, switchBusiness, business: activeBusiness } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredBusinesses = allBusinesses.filter(b => 
-    b.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    b.industry.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredBusinesses = (allBusinesses || []).filter(b => 
+    (b.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (b.industry || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const totalMRR = allBusinesses.reduce((acc, b) => {
+  const totalMRR = (allBusinesses || []).reduce((acc, b) => {
     if (b.plan === 'Pro Growth') return acc + 99;
     if (b.plan === 'Enterprise') return acc + 249;
     return acc + 29;

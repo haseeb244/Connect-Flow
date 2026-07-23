@@ -39,7 +39,7 @@ const MainAppContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-[#2D302D] text-[#EBE9E4] font-sans selection:bg-[#8A9A5B] selection:text-white">
         <LandingPage onOpenAuth={(mode) => setAuthModalOpen(true)} />
-        <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+        <AuthModal />
       </div>
     );
   }

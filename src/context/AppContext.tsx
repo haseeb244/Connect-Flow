@@ -138,7 +138,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Load initial states with localStorage persistence if available
   const [currentRole, setCurrentRole] = useState<UserRole>('business_admin');
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
-  const [publicView, setPublicView] = useState<boolean>(false);
+  const [publicView, setPublicView] = useState<boolean>(() => {
+    const isLoggedIn = localStorage.getItem('cf_is_logged_in');
+    return isLoggedIn === 'true' ? false : true;
+  });
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot'>('login');
 
@@ -310,8 +313,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteContact = (id: string) => {
-    const target = contacts.find(c => c.id === id);
-    setContacts(prev => prev.filter(c => c.id !== id));
+    const target = (contacts || []).find(c => c.id === id);
+    setContacts(prev => (prev || []).filter(c => c.id !== id));
     if (target) {
       logActivity('Contact Deleted', `Deleted contact ${target.name}`);
     }
@@ -351,7 +354,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteGroup = (id: string) => {
-    setGroups(prev => prev.filter(g => g.id !== id));
+    setGroups(prev => (prev || []).filter(g => g.id !== id));
     logActivity('Group Deleted', `Deleted contact group ID: ${id}`);
   };
 
@@ -362,12 +365,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `tpl-${Date.now()}`,
       createdAt: new Date().toISOString().split('T')[0],
     };
-    setTemplates(prev => [newTpl, ...prev]);
+    setTemplates(prev => [newTpl, ...(prev || [])]);
     logActivity('Template Created', `Created template: ${newTpl.name}`);
   };
 
   const deleteTemplate = (id: string) => {
-    setTemplates(prev => prev.filter(t => t.id !== id));
+    setTemplates(prev => (prev || []).filter(t => t.id !== id));
   };
 
   // Voice Recording Actions
@@ -377,12 +380,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `rec-${Date.now()}`,
       createdAt: new Date().toISOString().split('T')[0],
     };
-    setVoiceRecordings(prev => [newRec, ...prev]);
+    setVoiceRecordings(prev => [newRec, ...(prev || [])]);
     logActivity('Voice Recording Uploaded', `Uploaded recording: ${newRec.title}`);
   };
 
   const deleteVoiceRecording = (id: string) => {
-    setVoiceRecordings(prev => prev.filter(r => r.id !== id));
+    setVoiceRecordings(prev => (prev || []).filter(r => r.id !== id));
   };
 
   // Campaign Actions
@@ -421,8 +424,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Filter contacts in this group
     const audience = targetCmp.groupId === 'all' 
-      ? contacts 
-      : contacts.filter(c => c.groupIds.includes(targetCmp.groupId));
+      ? (contacts || []) 
+      : (contacts || []).filter(c => (c.groupIds || []).includes(targetCmp.groupId));
 
     const recipientCount = audience.length > 0 ? audience.length : targetCmp.audienceCount;
 
@@ -522,7 +525,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteAutomationRule = (id: string) => {
-    setAutomationRules(prev => prev.filter(r => r.id !== id));
+    setAutomationRules(prev => (prev || []).filter(r => r.id !== id));
   };
 
   const triggerRuleSimulation = (ruleId: string) => {

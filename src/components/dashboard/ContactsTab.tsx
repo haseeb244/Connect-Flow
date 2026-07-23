@@ -58,11 +58,11 @@ export const ContactsTab: React.FC = () => {
   const [groupColor, setGroupColor] = useState('#3b82f6');
 
   // Filtered Contacts List
-  const filteredContacts = contacts.filter(c => {
-    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          c.phone.includes(searchQuery) || 
-                          c.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGroup = selectedGroupFilter === 'all' || c.groupIds.includes(selectedGroupFilter);
+  const filteredContacts = (contacts || []).filter(c => {
+    const matchesSearch = (c.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (c.phone || '').includes(searchQuery) || 
+                          (c.email || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesGroup = selectedGroupFilter === 'all' || (c.groupIds || []).includes(selectedGroupFilter);
     return matchesSearch && matchesGroup;
   });
 
@@ -293,13 +293,13 @@ export const ContactsTab: React.FC = () => {
                     </tr>
                   ) : (
                     filteredContacts.map(contact => {
-                      const assignedGroups = groups.filter(g => contact.groupIds.includes(g.id));
+                      const assignedGroups = (groups || []).filter(g => (contact.groupIds || []).includes(g.id));
                       return (
                         <tr key={contact.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="py-3 px-4 font-bold text-slate-900">
                             {contact.name}
                             <div className="flex gap-1 mt-0.5">
-                              {contact.tags.map((tag, idx) => (
+                              {(contact.tags || []).map((tag, idx) => (
                                 <span key={idx} className="text-[9px] font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded">
                                   {tag}
                                 </span>
@@ -391,8 +391,8 @@ export const ContactsTab: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groups.map(group => {
-              const count = contacts.filter(c => c.groupIds.includes(group.id)).length;
+            {(groups || []).map(group => {
+              const count = (contacts || []).filter(c => (c.groupIds || []).includes(group.id)).length;
               return (
                 <div key={group.id} className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
                   <div>
@@ -486,7 +486,7 @@ export const ContactsTab: React.FC = () => {
                         checked={selectedGroups.includes(g.id)}
                         onChange={e => {
                           if (e.target.checked) setSelectedGroups([...selectedGroups, g.id]);
-                          else setSelectedGroups(selectedGroups.filter(id => id !== g.id));
+                          else setSelectedGroups((selectedGroups || []).filter(id => id !== g.id));
                         }}
                         className="rounded border-slate-300 text-indigo-600"
                       />

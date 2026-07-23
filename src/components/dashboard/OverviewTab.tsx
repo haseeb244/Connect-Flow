@@ -45,12 +45,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onOpenCampaignWizard }
     business 
   } = useApp();
 
-  const totalContacts = contacts.length;
-  const totalMessagesSent = messageLogs.filter(m => m.status === 'delivered' || m.status === 'sent' || m.status === 'read').length;
-  const totalCallsMade = voiceLogs.length;
-  const scheduledCampaigns = campaigns.filter(c => c.status === 'scheduled' || c.status === 'running').length;
+  const totalContacts = (contacts || []).length;
+  const totalMessagesSent = (messageLogs || []).filter(m => m.status === 'delivered' || m.status === 'sent' || m.status === 'read').length;
+  const totalCallsMade = (voiceLogs || []).length;
+  const scheduledCampaigns = (campaigns || []).filter(c => c.status === 'scheduled' || c.status === 'running').length;
 
-  const recentActivity = messageLogs.slice(0, 5);
+  const recentActivity = (messageLogs || []).slice(0, 5);
 
   const chartData = [
     { day: 'Mon', SMS: 1200, WhatsApp: 850, Email: 2100, Voice: 120 },
@@ -256,7 +256,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onOpenCampaignWizard }
           </div>
 
           <div className="space-y-3">
-            {campaigns.slice(0, 3).map(cmp => (
+            {(campaigns || []).slice(0, 3).map(cmp => (
               <div 
                 key={cmp.id}
                 className="p-4 bg-[#F9F8F6] rounded-2xl border border-[#E5E2DA] flex items-center justify-between gap-3"

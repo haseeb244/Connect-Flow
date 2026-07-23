@@ -14,7 +14,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ isOpen, 
 
   if (!isOpen) return null;
 
-  const filtered = notifications.filter(n => filter === 'all' || !n.read);
+  const filtered = (notifications || []).filter(n => filter === 'all' || !n.read);
 
   const getIcon = (type: NotificationItem['type']) => {
     switch (type) {
@@ -57,18 +57,18 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ isOpen, 
               onClick={() => setFilter('all')}
               className={`px-2.5 py-1 rounded-md font-semibold ${filter === 'all' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
             >
-              All ({notifications.length})
+              All ({(notifications || []).length})
             </button>
             <button
               onClick={() => setFilter('unread')}
               className={`px-2.5 py-1 rounded-md font-semibold ${filter === 'unread' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
             >
-              Unread ({notifications.filter(n => !n.read).length})
+              Unread ({(notifications || []).filter(n => !n.read).length})
             </button>
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => notifications.forEach(n => markNotificationRead(n.id))}
+              onClick={() => (notifications || []).forEach(n => markNotificationRead(n.id))}
               className="text-[11px] font-semibold text-slate-600 hover:text-indigo-600 flex items-center gap-1"
             >
               <CheckCheck className="w-3.5 h-3.5" />

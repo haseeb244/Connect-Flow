@@ -42,10 +42,10 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
 
   if (!isOpen) return null;
 
-  const targetGroup = groups.find(g => g.id === selectedGroupId);
+  const targetGroup = (groups || []).find(g => g.id === selectedGroupId);
   const targetAudienceCount = selectedGroupId === 'all' 
-    ? contacts.length 
-    : contacts.filter(c => c.groupIds.includes(selectedGroupId)).length || targetGroup?.contactCount || 100;
+    ? (contacts || []).length 
+    : (contacts || []).filter(c => (c.groupIds || []).includes(selectedGroupId)).length || targetGroup?.contactCount || 100;
 
   const handleSelectTemplate = (tplId: string) => {
     const tpl = templates.find(t => t.id === tplId);
@@ -234,12 +234,12 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
                       </div>
                     </div>
                     <span className="px-2.5 py-1 bg-slate-200 text-slate-800 text-xs font-extrabold rounded-full">
-                      {contacts.length} Contacts
+                      {(contacts || []).length} Contacts
                     </span>
                   </div>
 
-                  {groups.map(group => {
-                    const count = contacts.filter(c => c.groupIds.includes(group.id)).length || group.contactCount;
+                  {(groups || []).map(group => {
+                    const count = (contacts || []).filter(c => (c.groupIds || []).includes(group.id)).length || group.contactCount;
                     return (
                       <div
                         key={group.id}
@@ -277,7 +277,7 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 outline-none"
                 >
                   <option value="">-- Choose a template --</option>
-                  {templates.filter(t => t.channel === channel || channel === 'sms').map(tpl => (
+                  {(templates || []).filter(t => t.channel === channel || channel === 'sms').map(tpl => (
                     <option key={tpl.id} value={tpl.id}>[{tpl.category}] {tpl.name}</option>
                   ))}
                 </select>

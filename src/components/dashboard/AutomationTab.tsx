@@ -96,7 +96,7 @@ export const AutomationTab: React.FC = () => {
 
       {/* Rules Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {automationRules.map(rule => (
+        {(automationRules || []).map(rule => (
           <div 
             key={rule.id}
             className={`p-5 rounded-xl border transition-all shadow-2xs flex flex-col justify-between ${
