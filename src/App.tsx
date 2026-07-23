@@ -76,7 +76,7 @@ const MainAppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F8F6] text-[#33332D] font-sans flex flex-col antialiased selection:bg-[#8A9A5B] selection:text-white">
+    <div className="flex h-screen bg-[#F9F8F6] text-[#2D302D] font-sans overflow-hidden antialiased selection:bg-[#8A9A5B] selection:text-white">
       {/* Toast Alert Banner for Live Broadcast Simulations */}
       {activeNotificationToast && (
         <div className="fixed top-4 right-4 z-50 max-w-sm bg-[#2D302D] text-white p-4 rounded-xl shadow-2xl border border-[#8A9A5B]/50 flex items-start justify-between gap-3 animate-in slide-in-from-top-3 duration-200">
@@ -98,16 +98,19 @@ const MainAppContent: React.FC = () => {
         </div>
       )}
 
-      {/* Top Header */}
-      <Header />
+      {/* Desktop Sidebar (Flush Left Edge) */}
+      <Sidebar />
 
-      {/* Main Container Layout */}
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex gap-6">
-        {/* Desktop Sidebar */}
-        <Sidebar onOpenCampaignWizard={() => setCampaignWizardOpen(true)} />
+      {/* Main App Workspace Panel */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Top Header */}
+        <Header 
+          onOpenNotifications={() => {}} 
+          onOpenCampaignWizard={() => setCampaignWizardOpen(true)} 
+        />
 
-        {/* Dashboard Active View Panel */}
-        <main className="flex-1 min-w-0 pb-20 lg:pb-6">
+        {/* Dashboard Active View Scroll Area */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8">
           {renderActiveTab()}
         </main>
       </div>
@@ -125,7 +128,7 @@ const MainAppContent: React.FC = () => {
       />
 
       {/* Onboarding Auth Modal */}
-      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <AuthModal />
     </div>
   );
 };

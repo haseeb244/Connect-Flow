@@ -16,7 +16,8 @@ import {
   ShieldAlert,
   Zap,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Layers
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -38,10 +39,10 @@ export const Sidebar: React.FC = () => {
     { id: 'overview' as DashboardTab, label: 'Overview', icon: LayoutDashboard },
     { id: 'contacts' as DashboardTab, label: 'Contacts & Groups', icon: Users, badge: contacts.length },
     { id: 'templates' as DashboardTab, label: 'Message Templates', icon: FileText },
-    { id: 'campaigns' as DashboardTab, label: 'Campaigns', icon: Send, badge: activeCampaignsCount > 0 ? `${activeCampaignsCount} Active` : undefined, badgeColor: 'bg-indigo-100 text-indigo-700' },
+    { id: 'campaigns' as DashboardTab, label: 'Campaigns', icon: Send, badge: activeCampaignsCount > 0 ? `${activeCampaignsCount} Active` : undefined, badgeColor: 'bg-[#8A9A5B] text-white' },
     { id: 'voice_calls' as DashboardTab, label: 'Voice Calling', icon: PhoneCall },
     { id: 'messaging' as DashboardTab, label: 'Message Logs', icon: MessageSquare },
-    { id: 'automation' as DashboardTab, label: 'Automation Rules', icon: Workflow, badge: `${activeRulesCount} Rules`, badgeColor: 'bg-emerald-100 text-emerald-700' },
+    { id: 'automation' as DashboardTab, label: 'Automation Rules', icon: Workflow, badge: `${activeRulesCount} Rules`, badgeColor: 'bg-[#8A9A5B]/20 text-[#8A9A5B]' },
     { id: 'reports' as DashboardTab, label: 'Reports & Analytics', icon: BarChart3 },
   ];
 
@@ -60,7 +61,25 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className="w-64 bg-[#2D302D] text-[#EBE9E4] flex flex-col shrink-0 min-h-[calc(100vh-4rem)] border-r border-[#3F433F] hidden md:flex select-none">
+    <aside className="w-64 bg-[#2D302D] text-[#EBE9E4] flex flex-col shrink-0 h-screen border-r border-[#3F433F] hidden md:flex select-none z-30">
+      {/* Top Sidebar Brand Logo */}
+      <div 
+        onClick={() => { setPublicView(false); setActiveTab('overview'); }}
+        className="h-20 px-6 border-b border-[#3F433F] flex items-center gap-3 cursor-pointer hover:bg-[#3F433F]/40 transition-colors"
+      >
+        <div className="w-9 h-9 rounded-xl bg-[#8A9A5B] text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+          <Layers className="w-5 h-5" />
+        </div>
+        <div className="min-w-0">
+          <span className="text-lg font-extrabold tracking-tight text-white block leading-none truncate">
+            ConnectFlow
+          </span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8A9A5B] mt-1 block">
+            Omnichannel SaaS
+          </span>
+        </div>
+      </div>
+
       {/* Navigation List */}
       <div className="flex-1 py-4 px-3 space-y-6 overflow-y-auto">
         <div>
