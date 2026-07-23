@@ -383,36 +383,6 @@ export const AuthModal: React.FC = () => {
                 )}
               </button>
 
-              {/* Quick Persona Demo Buttons */}
-              <div className="pt-3 border-t border-[#F2F0EB]">
-                <p className="text-[10px] font-bold text-[#8A857C] uppercase tracking-wider text-center mb-2">
-                  One-Click Demo Personas
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin('business_admin')}
-                    className="py-2 px-2 bg-[#F2F0EB] hover:bg-[#E5E2DA] text-[#2D302D] rounded-xl text-[10px] font-bold text-center transition-colors"
-                  >
-                    Business Admin
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin('staff')}
-                    className="py-2 px-2 bg-[#F2F0EB] hover:bg-[#E5E2DA] text-[#2D302D] rounded-xl text-[10px] font-bold text-center transition-colors"
-                  >
-                    Staff User
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin('super_admin')}
-                    className="py-2 px-2 bg-[#2D302D] hover:bg-[#3F433F] text-white rounded-xl text-[10px] font-bold text-center transition-colors"
-                  >
-                    Super Admin
-                  </button>
-                </div>
-              </div>
-
               <div className="text-center pt-2">
                 <span className="text-xs text-[#8A857C]">Don't have an account? </span>
                 <button

@@ -40,11 +40,6 @@ export const LandingPage: React.FC = () => {
     setAuthModalOpen(true);
   };
 
-  const directDemo = () => {
-    setPublicView(false);
-    setActiveTab('overview');
-  };
-
   const industries = [
     { name: 'Schools & Colleges', icon: School, desc: 'Fee reminders, exam schedules, emergency attendance alerts' },
     { name: 'Hospitals & Clinics', icon: Activity, desc: 'Appointment confirmations, lab test ready alerts, prescription reminders' },
@@ -75,15 +70,8 @@ export const LandingPage: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={directDemo}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E2DA] bg-[#F2F0EB] hover:bg-[#E5E2DA] text-[#2D302D] text-xs font-bold transition-all"
-          >
-            <span>Launch Live App</span>
-            <ChevronRight className="w-3.5 h-3.5 text-[#8A9A5B]" />
-          </button>
-          <button
             onClick={openLogin}
-            className="px-4 py-2 text-xs font-bold text-[#2D302D] hover:text-[#8A9A5B] transition-colors"
+            className="px-4 py-2 text-xs font-bold text-[#2D302D] hover:text-[#8A9A5B] transition-colors border border-[#E5E2DA] rounded-xl hover:bg-[#F2F0EB]"
           >
             Sign In
           </button>
@@ -91,7 +79,7 @@ export const LandingPage: React.FC = () => {
             onClick={openRegister}
             className="px-4 py-2 bg-[#8A9A5B] hover:bg-[#78884B] text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
           >
-            Start Free Trial
+            Sign Up
           </button>
         </div>
       </nav>
@@ -162,14 +150,14 @@ export const LandingPage: React.FC = () => {
             onClick={openRegister}
             className="w-full sm:w-auto px-8 py-3.5 bg-[#8A9A5B] hover:bg-[#78884B] text-white rounded-2xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 group"
           >
-            <span>Start 14-Day Free Trial</span>
+            <span>Create Free Account</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
           <button
-            onClick={directDemo}
+            onClick={openLogin}
             className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-[#F2F0EB] text-[#2D302D] border border-[#E5E2DA] rounded-2xl font-bold text-sm shadow-xs transition-colors"
           >
-            Explore Dashboard Directly
+            Sign In to Account
           </button>
         </div>
         <p className="text-xs text-[#8A857C] mt-3">No credit card required • Instant gateway setup • Cancel anytime</p>
@@ -448,10 +436,10 @@ export const LandingPage: React.FC = () => {
           <div>
             <h5 className="text-white font-bold mb-3 uppercase tracking-wider text-[11px]">Product Features</h5>
             <ul className="space-y-2">
-              <li><button onClick={directDemo} className="hover:text-white transition-colors">Campaign Scheduler</button></li>
-              <li><button onClick={directDemo} className="hover:text-white transition-colors">Voice Audio Manager</button></li>
-              <li><button onClick={directDemo} className="hover:text-white transition-colors">Rule Automation Engine</button></li>
-              <li><button onClick={directDemo} className="hover:text-white transition-colors">Delivery Analytics & Reports</button></li>
+              <li><a href="#features" className="hover:text-white transition-colors">Campaign Scheduler</a></li>
+              <li><a href="#features" className="hover:text-white transition-colors">Voice Audio Manager</a></li>
+              <li><a href="#features" className="hover:text-white transition-colors">Rule Automation Engine</a></li>
+              <li><a href="#features" className="hover:text-white transition-colors">Delivery Analytics & Reports</a></li>
             </ul>
           </div>
 
@@ -470,10 +458,10 @@ export const LandingPage: React.FC = () => {
             <p className="text-[#A8A59E] mb-2">Support: support@connectflow.io</p>
             <p className="text-[#A8A59E] mb-4">Phone: +1 (800) 555-FLOW</p>
             <button
-              onClick={directDemo}
+              onClick={openLogin}
               className="px-4 py-2 bg-[#8A9A5B] hover:bg-[#78884B] text-white rounded-xl font-bold transition-colors"
             >
-              Access Dashboard
+              Sign In to Account
             </button>
           </div>
         </div>
