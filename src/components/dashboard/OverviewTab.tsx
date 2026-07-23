@@ -1,20 +1,34 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   Users, 
   Send, 
+  PhoneCall, 
   Calendar, 
-  Plus, 
-  UserPlus, 
-  MessageSquare, 
-  BarChart3, 
+  TrendingUp, 
+  TrendingDown, 
+  AlertCircle, 
+  CheckCircle2, 
   Clock, 
-  X, 
-  CheckCircle2,
-  PhoneCall,
-  Mail,
-  Smartphone
+  ArrowUpRight, 
+  Zap, 
+  Plus, 
+  FileSpreadsheet, 
+  Play,
+  MessageSquare
 } from 'lucide-react';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar, 
+  Cell 
+} from 'recharts';
 
 interface OverviewTabProps {
   onOpenCampaignWizard: () => void;
@@ -25,447 +39,312 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onOpenCampaignWizard }
     contacts, 
     campaigns, 
     messageLogs, 
+    voiceLogs, 
     setActiveTab, 
-    addContact,
-    logActivity
+    runCampaignSimulation,
+    business 
   } = useApp();
 
-  // Quick Action Modals State
-  const [addContactModalOpen, setAddContactModalOpen] = useState(false);
-  const [sendMessageModalOpen, setSendMessageModalOpen] = useState(false);
-
-  // Add Contact Form State
-  const [contactName, setContactName] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-
-  // Send Message Form State
-  const [msgChannel, setMsgChannel] = useState<'sms' | 'whatsapp' | 'email'>('sms');
-  const [msgRecipient, setMsgRecipient] = useState('');
-  const [msgText, setMsgText] = useState('');
-  const [sendSuccessMsg, setSendSuccessMsg] = useState('');
-
-  // Calculate Metrics
   const totalContacts = (contacts || []).length;
-  const activeCampaigns = (campaigns || []).filter(c => c.status === 'running' || c.status === 'scheduled').length;
-  const totalMessagesSent = (messageLogs || []).filter(m => m.status === 'delivered' || m.status === 'sent' || m.status === 'read').length || 48290;
-  const scheduledMessages = 1450;
+  const totalMessagesSent = (messageLogs || []).filter(m => m.status === 'delivered' || m.status === 'sent' || m.status === 'read').length;
+  const totalCallsMade = (voiceLogs || []).length;
+  const scheduledCampaigns = (campaigns || []).filter(c => c.status === 'scheduled' || c.status === 'running').length;
 
-  const handleSaveContact = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!contactName || !contactPhone) return;
-    addContact({
-      name: contactName,
-      phone: contactPhone,
-      email: contactEmail || `${contactName.toLowerCase().replace(/\s+/g, '')}@example.com`,
-      groupIds: [],
-      tags: ['New Contact'],
-      customFields: {},
-      status: 'active'
-    });
-    setContactName('');
-    setContactPhone('');
-    setContactEmail('');
-    setAddContactModalOpen(false);
-  };
+  const recentActivity = (messageLogs || []).slice(0, 5);
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!msgRecipient || !msgText) return;
-    logActivity('Quick Message Sent', `${msgChannel.toUpperCase()} sent to ${msgRecipient}`);
-    setSendSuccessMsg('Message dispatched successfully!');
-    setTimeout(() => {
-      setSendSuccessMsg('');
-      setMsgRecipient('');
-      setMsgText('');
-      setSendMessageModalOpen(false);
-    }, 1200);
-  };
+  const chartData = [
+    { day: 'Mon', SMS: 1200, WhatsApp: 850, Email: 2100, Voice: 120 },
+    { day: 'Tue', SMS: 1900, WhatsApp: 1200, Email: 2800, Voice: 210 },
+    { day: 'Wed', SMS: 1400, WhatsApp: 980, Email: 1900, Voice: 180 },
+    { day: 'Thu', SMS: 2400, WhatsApp: 1600, Email: 3200, Voice: 290 },
+    { day: 'Fri', SMS: 2100, WhatsApp: 1450, Email: 2900, Voice: 240 },
+    { day: 'Sat', SMS: 800, WhatsApp: 600, Email: 1100, Voice: 80 },
+    { day: 'Sun', SMS: 650, WhatsApp: 450, Email: 900, Voice: 50 },
+  ];
 
-  // Channel Badge Colors
-  const getChannelBadge = (channel: string) => {
-    switch (channel.toLowerCase()) {
-      case 'whatsapp':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"><Smartphone className="w-3 h-3" /> WhatsApp</span>;
-      case 'sms':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200"><MessageSquare className="w-3 h-3" /> SMS</span>;
-      case 'voice':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200"><PhoneCall className="w-3 h-3" /> Voice</span>;
-      default:
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200"><Mail className="w-3 h-3" /> Email</span>;
-    }
-  };
-
-  // Status Badge Colors
-  const getStatusBadge = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'running':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200"><span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span> Running</span>;
-      case 'scheduled':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200"><Clock className="w-3 h-3" /> Scheduled</span>;
-      case 'completed':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"><CheckCircle2 className="w-3 h-3" /> Completed</span>;
-      default:
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">Draft</span>;
-    }
-  };
+  const channelBreakdown = [
+    { name: 'SMS', count: 12450, color: '#3525cd' },
+    { name: 'WhatsApp', count: 8900, color: '#006c49' },
+    { name: 'Email', count: 45000, color: '#4b4dd8' },
+    { name: 'Voice', count: 1200, color: '#ba1a1a' },
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* Page Title */}
-      <div>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Dashboard Overview</h1>
-        <p className="text-xs text-slate-500 mt-1">Welcome back! Here is a summary of your automated communication campaigns.</p>
-      </div>
-
-      {/* 1. STATISTICS CARDS (4) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Contacts */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-slate-500">Total Contacts</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{totalContacts.toLocaleString()}</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <Users className="w-5 h-5" />
-          </div>
+    <div className="space-y-6 animate-in fade-in duration-200">
+      {/* Top Banner & Quick Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E2DA]">
+        <div>
+          <h2 className="text-2xl font-bold text-[#2D302D] tracking-tight">Overview Dashboard</h2>
+          <p className="text-xs text-[#8A857C] mt-0.5">
+            Real-time campaign performance and channel metrics for <strong className="text-[#2D302D]">{business.name}</strong>.
+          </p>
         </div>
 
-        {/* Active Campaigns */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-slate-500">Active Campaigns</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{activeCampaigns}</p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('contacts')}
+            className="px-4 py-2 bg-white border border-[#E5E2DA] hover:bg-[#F9F8F6] text-[#2D302D] rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-[#8A857C]" />
+            <span>Manage Contacts</span>
+          </button>
+          <button
+            onClick={onOpenCampaignWizard}
+            className="px-4 py-2 bg-[#8A9A5B] hover:bg-[#78884B] text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Campaign</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Bento Grid (matching Natural Tones styled design) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Contacts */}
+        <div className="bg-white border border-[#E5E2DA] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#8A9A5B] transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="p-2.5 rounded-xl bg-[#F2F0EB] text-[#8A9A5B]">
+              <Users className="w-5 h-5" />
+            </span>
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-3 h-3" /> +12%
+            </span>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <Send className="w-5 h-5" />
+          <div className="mt-4">
+            <p className="text-xs font-medium text-[#8A857C]">Total Contacts</p>
+            <p className="text-3xl font-bold text-[#2D302D] mt-1">{totalContacts.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Messages Sent */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-slate-500">Messages Sent</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{totalMessagesSent.toLocaleString()}</p>
+        <div className="bg-white border border-[#E5E2DA] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#8A9A5B] transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="p-2.5 rounded-xl bg-[#F2F0EB] text-[#8A9A5B]">
+              <Send className="w-5 h-5" />
+            </span>
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-3 h-3" /> +5%
+            </span>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <MessageSquare className="w-5 h-5" />
+          <div className="mt-4">
+            <p className="text-xs font-medium text-[#8A857C]">Messages Delivered</p>
+            <p className="text-3xl font-bold text-[#2D302D] mt-1">8,540</p>
+          </div>
+        </div>
+
+        {/* Calls Made */}
+        <div className="bg-white border border-[#E5E2DA] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#8A9A5B] transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="p-2.5 rounded-xl bg-[#F2F0EB] text-[#2D302D]">
+              <PhoneCall className="w-5 h-5" />
+            </span>
+            <span className="text-[11px] font-bold text-[#8A857C] bg-[#F2F0EB] border border-[#E5E2DA] px-2.5 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingDown className="w-3 h-3" /> -2%
+            </span>
+          </div>
+          <div className="mt-4">
+            <p className="text-xs font-medium text-[#8A857C]">Calls Executed</p>
+            <p className="text-3xl font-bold text-[#2D302D] mt-1">1,230</p>
           </div>
         </div>
 
-        {/* Scheduled Messages */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-slate-500">Scheduled Messages</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{scheduledMessages.toLocaleString()}</p>
+        {/* Scheduled Campaigns */}
+        <div className="bg-white border border-[#E5E2DA] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#8A9A5B] transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="p-2.5 rounded-xl bg-[#F2F0EB] text-[#8A9A5B]">
+              <Calendar className="w-5 h-5" />
+            </span>
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-3 h-3" /> +18%
+            </span>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <Calendar className="w-5 h-5" />
+          <div className="mt-4">
+            <p className="text-xs font-medium text-[#8A857C]">Scheduled Workflows</p>
+            <p className="text-3xl font-bold text-[#2D302D] mt-1">{scheduledCampaigns}</p>
           </div>
-        </div>
-      </div>
-
-      {/* 2. QUICK ACTIONS (4 Large Buttons) */}
-      <div>
-        <h2 className="text-sm font-bold text-slate-800 mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <button
-            onClick={() => setAddContactModalOpen(true)}
-            className="bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-xl p-4 text-left transition-all group flex flex-col justify-between h-28 shadow-2xs"
-          >
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform">
-              <UserPlus className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Add Contact</p>
-              <p className="text-[11px] text-slate-500">Create a new customer profile</p>
-            </div>
-          </button>
-
-          <button
-            onClick={onOpenCampaignWizard}
-            className="bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-xl p-4 text-left transition-all group flex flex-col justify-between h-28 shadow-2xs"
-          >
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Plus className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Create Campaign</p>
-              <p className="text-[11px] text-slate-500">Launch automated broadcast</p>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setSendMessageModalOpen(true)}
-            className="bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-xl p-4 text-left transition-all group flex flex-col justify-between h-28 shadow-2xs"
-          >
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform">
-              <MessageSquare className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Send Message</p>
-              <p className="text-[11px] text-slate-500">Quick instant dispatch</p>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('reports')}
-            className="bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-xl p-4 text-left transition-all group flex flex-col justify-between h-28 shadow-2xs"
-          >
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform">
-              <BarChart3 className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">View Reports</p>
-              <p className="text-[11px] text-slate-500">Delivery analytics & stats</p>
-            </div>
-          </button>
         </div>
       </div>
 
-      {/* 3. RECENT CAMPAIGNS & 4. RECENT ACTIVITY GRID */}
+      {/* Analytics Charts & Live Action Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Campaigns Table (Spans 2 columns) */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5 shadow-2xs">
+        {/* Weekly Delivery Volume Graph */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-[#E5E2DA] shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-sm font-bold text-slate-900">Recent Campaigns</h2>
-              <p className="text-xs text-slate-500">Overview of recent messaging campaigns</p>
+              <h3 className="text-sm font-bold text-[#2D302D]">Weekly Broadcast Volume</h3>
+              <p className="text-[11px] text-[#8A857C]">Messages and voice calls dispatched per day</p>
+            </div>
+            <span className="text-[11px] font-bold text-[#8A9A5B] bg-[#F2F0EB] border border-[#E5E2DA] px-3 py-1 rounded-full">
+              7-Day Activity
+            </span>
+          </div>
+
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorEmail" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8A9A5B" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#8A9A5B" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorSms" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2D302D" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#2D302D" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E2DA" />
+                <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#8A857C' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#8A857C' }} axisLine={false} tickLine={false} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#2D302D', borderColor: '#3F433F', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
+                />
+                <Area type="monotone" dataKey="Email" stroke="#8A9A5B" fillOpacity={1} fill="url(#colorEmail)" strokeWidth={2} />
+                <Area type="monotone" dataKey="SMS" stroke="#2D302D" fillOpacity={1} fill="url(#colorSms)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Channel Quota Distribution */}
+        <div className="bg-white p-6 rounded-3xl border border-[#E5E2DA] shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-[#2D302D]">Channel Distribution</h3>
+            <p className="text-[11px] text-[#8A857C] mb-4">Quota usage across active gateways</p>
+
+            <div className="space-y-3.5">
+              {channelBreakdown.map((ch, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-[#2D302D]">{ch.name}</span>
+                    <span className="text-[#2D302D] font-bold">{ch.count.toLocaleString()}</span>
+                  </div>
+                  <div className="w-full bg-[#F2F0EB] h-2.5 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${Math.min(100, (ch.count / 50000) * 100)}%`, backgroundColor: idx % 2 === 0 ? '#8A9A5B' : '#2D302D' }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-[#F2F0EB]">
+            <button
+              onClick={() => setActiveTab('subscription')}
+              className="w-full py-2.5 bg-[#F2F0EB] hover:bg-[#E5E2DA] text-[#2D302D] rounded-xl text-xs font-bold transition-colors text-center"
+            >
+              View Quotas & Upgrade Plan
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Active Campaigns & Recent Activity Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Active Campaign Status Manager */}
+        <div className="bg-white p-6 rounded-3xl border border-[#E5E2DA] shadow-xs">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-[#2D302D]">Campaign Execution Queue</h3>
+              <p className="text-[11px] text-[#8A857C]">Scheduled and running broadcast workflows</p>
             </div>
             <button
               onClick={() => setActiveTab('campaigns')}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+              className="text-xs font-bold text-[#8A9A5B] hover:underline flex items-center gap-0.5"
             >
-              View All
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
-                  <th className="pb-2">Campaign Name</th>
-                  <th className="pb-2">Channel</th>
-                  <th className="pb-2">Status</th>
-                  <th className="pb-2 text-right">Schedule Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {(campaigns || []).slice(0, 5).map(cmp => (
-                  <tr key={cmp.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3 font-semibold text-slate-800">{cmp.name}</td>
-                    <td className="py-3">{getChannelBadge(cmp.channel)}</td>
-                    <td className="py-3">{getStatusBadge(cmp.status)}</td>
-                    <td className="py-3 text-right text-slate-500 font-medium">
-                      {cmp.scheduleDate} {cmp.scheduleTime ? `at ${cmp.scheduleTime}` : ''}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Recent Activity List (Spans 1 column) */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Recent Activity</h2>
-              <p className="text-xs text-slate-500">Latest actions and logs</p>
-            </div>
-            <button
-              onClick={() => setActiveTab('messaging')}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
-            >
-              View Logs
+              <span>View All</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
           <div className="space-y-3">
-            {(messageLogs || []).slice(0, 5).map(log => (
-              <div key={log.id} className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-slate-800 truncate">{log.recipientName}</p>
-                  <p className="text-[11px] text-slate-500 truncate mt-0.5">{log.content}</p>
+            {(campaigns || []).slice(0, 3).map(cmp => (
+              <div 
+                key={cmp.id}
+                className="p-4 bg-[#F9F8F6] rounded-2xl border border-[#E5E2DA] flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 bg-[#8A9A5B] text-white`}>
+                    {cmp.channel.toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-[#2D302D] truncate">{cmp.name}</p>
+                    <p className="text-[11px] text-[#8A857C] truncate">
+                      Group: {cmp.groupName} • {cmp.audienceCount} contacts
+                    </p>
+                  </div>
                 </div>
-                <span className="text-[10px] text-slate-400 shrink-0 font-medium">
-                  {log.timestamp.split(' ')[1] || 'Today'}
-                </span>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ${
+                    cmp.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
+                    cmp.status === 'running' ? 'bg-blue-100 text-blue-800 animate-pulse' :
+                    cmp.status === 'scheduled' ? 'bg-amber-100 text-amber-800' : 'bg-[#E5E2DA] text-[#2D302D]'
+                  }`}>
+                    {cmp.status}
+                  </span>
+
+                  {cmp.status === 'scheduled' && (
+                    <button
+                      onClick={() => runCampaignSimulation(cmp.id)}
+                      className="px-3 py-1 bg-[#8A9A5B] hover:bg-[#78884B] text-white rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1 shadow-xs"
+                      title="Run live test broadcast now"
+                    >
+                      <Play className="w-3 h-3 fill-current" />
+                      <span>Run Now</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Message & Voice Stream */}
+        <div className="bg-white p-6 rounded-3xl border border-[#E5E2DA] shadow-xs">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-[#2D302D]">Recent Activity Stream</h3>
+              <p className="text-[11px] text-[#8A857C]">Live delivery logs across all channels</p>
+            </div>
+            <button
+              onClick={() => setActiveTab('messaging')}
+              className="text-xs font-bold text-[#8A9A5B] hover:underline flex items-center gap-0.5"
+            >
+              <span>Full Logs</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {recentActivity.map(act => (
+              <div 
+                key={act.id} 
+                className="p-3.5 rounded-2xl border border-[#E5E2DA] bg-[#F9F8F6] hover:bg-[#F2F0EB] transition-colors flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-white border border-[#E5E2DA] flex items-center justify-center text-[#2D302D] font-bold text-xs shrink-0">
+                    <MessageSquare className="w-4 h-4 text-[#8A9A5B]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-[#2D302D] truncate">{act.recipientName}</p>
+                    <p className="text-[11px] text-[#8A857C] truncate">{act.content}</p>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
+                    act.status === 'delivered' || act.status === 'read' || act.status === 'sent'
+                      ? 'bg-[#8A9A5B]/20 text-[#78884B]' 
+                      : 'bg-rose-100 text-rose-800'
+                  }`}>
+                    {act.status.toUpperCase()}
+                  </span>
+                  <p className="text-[10px] text-[#8A857C] mt-0.5">{act.timestamp.split(' ')[1] || 'Today'}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
-
-      {/* MODAL: ADD CONTACT */}
-      {addContactModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 border border-slate-200 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Add New Contact</h3>
-              <button 
-                onClick={() => setAddContactModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveContact} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Sarah Jenkins"
-                  value={contactName}
-                  onChange={e => setContactName(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Phone Number *</label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="e.g. +1 (555) 234-5678"
-                  value={contactPhone}
-                  onChange={e => setContactPhone(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Email Address</label>
-                <input
-                  type="email"
-                  placeholder="e.g. sarah@example.com"
-                  value={contactEmail}
-                  onChange={e => setContactEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAddContactModalOpen(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold"
-                >
-                  Save Contact
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: SEND MESSAGE */}
-      {sendMessageModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 border border-slate-200 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Send Quick Message</h3>
-              <button 
-                onClick={() => setSendMessageModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {sendSuccessMsg ? (
-              <div className="py-8 text-center space-y-2">
-                <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
-                <p className="text-sm font-bold text-slate-800">{sendSuccessMsg}</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSendMessage} className="space-y-3.5 text-xs">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Select Channel</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setMsgChannel('sms')}
-                      className={`py-2 px-3 rounded-lg border font-semibold text-center transition-all ${
-                        msgChannel === 'sms' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      SMS
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMsgChannel('whatsapp')}
-                      className={`py-2 px-3 rounded-lg border font-semibold text-center transition-all ${
-                        msgChannel === 'whatsapp' ? 'border-emerald-600 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      WhatsApp
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMsgChannel('email')}
-                      className={`py-2 px-3 rounded-lg border font-semibold text-center transition-all ${
-                        msgChannel === 'email' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      Email
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Recipient Phone / Email *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. +1 (555) 987-6543"
-                    value={msgRecipient}
-                    onChange={e => setMsgRecipient(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Message Content *</label>
-                  <textarea
-                    required
-                    rows={3}
-                    placeholder="Type your broadcast message here..."
-                    value={msgText}
-                    onChange={e => setMsgText(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  />
-                </div>
-
-                <div className="pt-2 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSendMessageModalOpen(false)}
-                    className="px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold"
-                  >
-                    Send Now
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
-
