@@ -70,7 +70,7 @@ export const AuthModal: React.FC = () => {
         }, 800);
         return;
       } catch (err: any) {
-        setErrorMessage(err.message || 'Supabase authentication failed');
+        setErrorMessage(err.message || 'Authentication failed');
         setLoading(false);
         return;
       }
@@ -141,7 +141,7 @@ export const AuthModal: React.FC = () => {
         setSuccessMessage(
           createdUser?.identities?.length === 0
             ? 'Account exists! Try logging in or checking your email.'
-            : `Account created via Supabase! Welcome ${fullName || 'partner'}.`
+            : `Account created successfully! Welcome ${fullName || 'partner'}.`
         );
 
         if (fullName) {
@@ -169,11 +169,11 @@ export const AuthModal: React.FC = () => {
           setActiveTab('overview');
           setSuccessMessage('');
           setLoading(false);
-          logActivity('Supabase Register', `Created account for ${businessName || fullName}`);
+          logActivity('Register', `Created account for ${businessName || fullName}`);
         }, 1200);
         return;
       } catch (err: any) {
-        setErrorMessage(err.message || 'Supabase registration failed');
+        setErrorMessage(err.message || 'Registration failed');
         setLoading(false);
         return;
       }
@@ -224,7 +224,7 @@ export const AuthModal: React.FC = () => {
           setLoading(false);
           return;
         }
-        setSuccessMessage('Supabase password reset link sent to your email!');
+        setSuccessMessage('Password reset link sent to your email!');
         setLoading(false);
         setTimeout(() => {
           setAuthMode('login');
@@ -273,14 +273,6 @@ export const AuthModal: React.FC = () => {
           <p className="text-xs text-[#A8A59E] mt-1">
             {authMode === 'login' ? 'Sign in to access your business communication suite' : authMode === 'register' ? 'Start your 14-day free trial in seconds' : 'Reset your account password'}
           </p>
-
-          {/* Supabase Status Pill */}
-          <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-[#3F433F] text-[#EBE9E4] border border-[#4A4E4A]">
-            <Database className={`w-3 h-3 ${isSupabaseConfigured ? 'text-[#8A9A5B]' : 'text-amber-400'}`} />
-            <span>
-              {isSupabaseConfigured ? 'Supabase Auth Connected' : 'Supabase Client Ready'}
-            </span>
-          </div>
 
           {/* Nav Mode Switcher Pills */}
           <div className="mt-4 flex justify-center gap-2">
@@ -373,7 +365,7 @@ export const AuthModal: React.FC = () => {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Signing in via Supabase...</span>
+                    <span>Signing in...</span>
                   </>
                 ) : (
                   <>
@@ -479,7 +471,7 @@ export const AuthModal: React.FC = () => {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Creating Supabase account...</span>
+                    <span>Creating account...</span>
                   </>
                 ) : (
                   <>
