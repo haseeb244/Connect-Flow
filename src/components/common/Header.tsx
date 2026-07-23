@@ -70,24 +70,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications, onOpenCampa
           </div>
         </div>
 
-        {/* Public vs Dashboard Toggle Button */}
-        <button
-          onClick={() => setPublicView(!publicView)}
-          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E5E2DA] bg-[#F9F8F6] text-[#2D302D] hover:bg-[#F2F0EB] hover:text-[#8A9A5B] text-xs font-semibold transition-all"
-          title="Switch between Public Landing Page and Dashboard view"
-        >
-          {publicView ? (
-            <>
-              <LayoutDashboard className="w-3.5 h-3.5 text-[#8A9A5B]" />
-              <span>Go to App Dashboard</span>
-            </>
-          ) : (
-            <>
-              <Globe className="w-3.5 h-3.5 text-[#8A857C]" />
-              <span>View Public Website</span>
-            </>
-          )}
-        </button>
+
       </div>
 
       {/* Center/Right Action Bar */}
