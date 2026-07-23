@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #F9F8F6;
+    color: #33332D;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+}
+
+.bg-natural-bg { background-color: #F9F8F6; }
+.bg-natural-dark { background-color: #2D302D; }
+.bg-natural-surface { background-color: #3F433F; }
+.bg-natural-sage { background-color: #8A9A5B; }
+.hover\:bg-natural-sage-dark:hover { background-color: #78884B; }
+.text-natural-sage { color: #8A9A5B; }
+.border-natural { border-color: #E5E2DA; }
+.border-natural-dark { border-color: #3F433F; }
+.text-natural-dark { color: #2D302D; }
+.text-natural-muted { color: #8A857C; }
+
