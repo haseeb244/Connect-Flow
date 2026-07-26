@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export const SettingsTab: React.FC = () => {
-  const { business, updateBusinessProfile } = useApp();
+  const { business, updateBusinessProfile, clearAllSampleData } = useApp();
 
   const [name, setName] = useState(business.name);
   const [industry, setIndustry] = useState(business.industry);
@@ -237,6 +237,29 @@ export const SettingsTab: React.FC = () => {
                 <span>{testingGateway === 'voice' ? 'Ping...' : 'Connected'}</span>
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Data Reset Section */}
+        <div className="lg:col-span-3 bg-white p-6 rounded-2xl border border-rose-200/80 bg-rose-50/20 shadow-2xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold text-rose-900">Clear Sample / Dummy Data</h3>
+              <p className="text-xs text-rose-700 mt-0.5">
+                Remove mock contacts, campaigns, logs, and templates to start fresh with clean real business data.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                if (confirm('Are you sure you want to delete all sample contacts, campaigns, and logs to start fresh with clean data?')) {
+                  clearAllSampleData();
+                  alert('All sample data cleared successfully! Your workspace is now clean.');
+                }
+              }}
+              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs self-start sm:self-auto"
+            >
+              Clear Dummy Data
+            </button>
           </div>
         </div>
       </div>

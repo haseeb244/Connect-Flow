@@ -130,6 +130,7 @@ interface AppContextType {
   // Utility
   logActivity: (action: string, details: string) => void;
   exportToCSV: (filename: string, rows: Record<string, any>[]) => void;
+  clearAllSampleData: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -534,7 +535,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setAutomationRules(prev => prev.map(r => r.id === ruleId ? { ...r, executionCount: r.executionCount + 1 } : r));
 
-    const randomContact = contacts[Math.floor(Math.random() * contacts.length)] || contacts[0];
+    const randomContact = (contacts && contacts.length > 0)
+      ? contacts[Math.floor(Math.random() * contacts.length)]
+      : { name: 'Sample Lead', email: 'lead@example.com', phone: '+15550000000' };
 
     const newLog: MessageLog = {
       id: `msg-auto-${Date.now()}`,
@@ -558,6 +561,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     logActivity('Automation Rule Fired', `Rule "${rule.title}" sent ${rule.channel} message to ${randomContact.name}`);
+  };
+
+  const clearAllSampleData = () => {
+    setContacts([]);
+    setGroups([]);
+    setTemplates([]);
+    setVoiceRecordings([]);
+    setCampaigns([]);
+    setMessageLogs([]);
+    setVoiceLogs([]);
+    setAutomationRules([]);
+    setNotifications([]);
+    setActivityLogs([]);
+
+    localStorage.removeItem('cf_contacts');
+    localStorage.removeItem('cf_groups');
+    localStorage.removeItem('cf_templates');
+    localStorage.removeItem('cf_voiceRecordings');
+    localStorage.removeItem('cf_campaigns');
+    localStorage.removeItem('cf_messageLogs');
+    localStorage.removeItem('cf_voiceLogs');
+    localStorage.removeItem('cf_automationRules');
+    localStorage.removeItem('cf_notifications');
+    localStorage.removeItem('cf_activityLogs');
   };
 
   // Staff Actions
@@ -684,6 +711,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sendDirectMessage,
         logActivity,
         exportToCSV,
+        clearAllSampleData,
       }}
     >
       {children}

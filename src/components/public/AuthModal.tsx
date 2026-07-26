@@ -414,7 +414,7 @@ export const AuthModal: React.FC = () => {
                     required
                     value={businessName}
                     onChange={e => setBusinessName(e.target.value)}
-                    placeholder="Apex Health Clinic"
+                    placeholder="e.g. My Business Workspace"
                     className="w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
                   />
                 </div>

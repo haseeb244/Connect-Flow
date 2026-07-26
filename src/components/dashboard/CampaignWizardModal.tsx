@@ -332,7 +332,7 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
                     rows={4}
                     value={content}
                     onChange={e => setContent(e.target.value)}
-                    placeholder="Dear {{name}}, this is a reminder from Apex Health..."
+                    placeholder="Dear {{name}}, this is a message from ConnectFlow..."
                     className="w-full p-3 border border-slate-300 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-indigo-600"
                   />
                 </div>
@@ -342,7 +342,7 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
               <div className="p-3 bg-slate-900 rounded-xl text-white space-y-1">
                 <span className="text-[10px] uppercase font-mono text-indigo-400 font-bold block">Live Recipient Mobile Preview</span>
                 <p className="text-xs font-mono text-slate-300 leading-relaxed bg-slate-800/80 p-2.5 rounded-lg border border-slate-700">
-                  {content ? content.replace('{{name}}', 'Eleanor Vance').replace('{{feeDue}}', '$180.00').replace('{{doctor}}', 'Dr. Lawson') : 'Your message text will render here...'}
+                  {content ? content.replace('{{name}}', 'John Doe').replace('{{feeDue}}', '$100.00').replace('{{doctor}}', 'Your Company') : 'Your message text will render here...'}
                 </p>
               </div>
             </div>

@@ -24,20 +24,34 @@ import {
 } from 'lucide-react';
 
 export const ReportsTab: React.FC = () => {
-  const { exportToCSV } = useApp();
+  const { messageLogs, voiceLogs, exportToCSV } = useApp();
   const [timeRange, setTimeRange] = useState('30days');
 
+  const smsDelivered = (messageLogs || []).filter(m => m.channel === 'sms' && m.status !== 'failed').length;
+  const smsFailed = (messageLogs || []).filter(m => m.channel === 'sms' && m.status === 'failed').length;
+  const waDelivered = (messageLogs || []).filter(m => m.channel === 'whatsapp' && m.status !== 'failed').length;
+  const waFailed = (messageLogs || []).filter(m => m.channel === 'whatsapp' && m.status === 'failed').length;
+  const emailDelivered = (messageLogs || []).filter(m => m.channel === 'email' && m.status !== 'failed').length;
+  const emailFailed = (messageLogs || []).filter(m => m.channel === 'email' && m.status === 'failed').length;
+  const voiceCompleted = (voiceLogs || []).filter(v => v.status === 'completed').length;
+  const voiceFailed = (voiceLogs || []).filter(v => v.status === 'failed' || v.status === 'no_answer' || v.status === 'busy').length;
+
+  const totalDelivered = smsDelivered + waDelivered + emailDelivered + voiceCompleted;
+  const totalFailed = smsFailed + waFailed + emailFailed + voiceFailed;
+  const totalAttempted = totalDelivered + totalFailed;
+  const overallSuccessRate = totalAttempted > 0 ? ((totalDelivered / totalAttempted) * 100).toFixed(1) : '100.0';
+
   const channelVolumeData = [
-    { channel: 'SMS', delivered: 12450, failed: 210 },
-    { channel: 'WhatsApp', delivered: 8900, failed: 45 },
-    { channel: 'Email', delivered: 45000, failed: 890 },
-    { channel: 'Voice Call', delivered: 1230, failed: 110 },
+    { channel: 'SMS', delivered: smsDelivered, failed: smsFailed },
+    { channel: 'WhatsApp', delivered: waDelivered, failed: waFailed },
+    { channel: 'Email', delivered: emailDelivered, failed: emailFailed },
+    { channel: 'Voice Call', delivered: voiceCompleted, failed: voiceFailed },
   ];
 
   const pieData = [
-    { name: 'Delivered', value: 67580, color: '#006c49' },
-    { name: 'Read / Engaged', value: 42100, color: '#3525cd' },
-    { name: 'Failed / Bounced', value: 1255, color: '#ba1a1a' },
+    { name: 'Delivered', value: totalDelivered, color: '#8A9A5B' },
+    { name: 'Read / Engaged', value: (messageLogs || []).filter(m => m.status === 'read').length, color: '#2D302D' },
+    { name: 'Failed / Bounced', value: totalFailed, color: '#ba1a1a' },
   ];
 
   const handleExportPDF = () => {
@@ -98,8 +112,8 @@ export const ReportsTab: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-xs font-semibold text-slate-500">Overall Success Rate</span>
-          <p className="text-2xl font-extrabold text-emerald-700 mt-1">98.2%</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">+0.4% from last month</p>
+          <p className="text-2xl font-extrabold text-emerald-700 mt-1">{overallSuccessRate}%</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">Live delivery status</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">

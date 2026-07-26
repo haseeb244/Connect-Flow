@@ -172,7 +172,7 @@ export const LandingPage: React.FC = () => {
           <div className="flex flex-wrap items-center justify-center gap-8 text-[#8A857C]">
             <div className="flex items-center gap-2 font-bold text-[#2D302D]">
               <School className="w-5 h-5 text-[#8A9A5B]" />
-              <span>Apex Academy</span>
+              <span>Horizon Academy</span>
             </div>
             <div className="flex items-center gap-2 font-bold text-[#2D302D]">
               <Activity className="w-5 h-5 text-[#8A9A5B]" />
