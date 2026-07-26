@@ -33,6 +33,7 @@ import {
   INITIAL_ACTIVITY_LOGS, 
   INITIAL_GATEWAY_SETTINGS 
 } from '../data/initialData';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 export type DashboardTab = 
   | 'overview' 
@@ -67,6 +68,8 @@ interface AppContextType {
   setCurrentUser: React.Dispatch<React.SetStateAction<User>>;
   business: Business;
   setBusiness: React.Dispatch<React.SetStateAction<Business>>;
+  updateBusinessProfile: (updated: Partial<Business>) => Promise<void> | void;
+  updateUserProfile: (updated: Partial<User>) => Promise<void> | void;
   contacts: Contact[];
   groups: ContactGroup[];
   templates: MessageTemplate[];
@@ -137,6 +140,21 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load initial states with localStorage persistence if available
+  // Run automatic one-time cleanup of old cached mock data
+  if (typeof window !== 'undefined' && localStorage.getItem('cf_clean_v1') !== 'true') {
+    localStorage.removeItem('cf_contacts');
+    localStorage.removeItem('cf_groups');
+    localStorage.removeItem('cf_templates');
+    localStorage.removeItem('cf_voiceRecordings');
+    localStorage.removeItem('cf_campaigns');
+    localStorage.removeItem('cf_messageLogs');
+    localStorage.removeItem('cf_voiceLogs');
+    localStorage.removeItem('cf_automationRules');
+    localStorage.removeItem('cf_notifications');
+    localStorage.removeItem('cf_activityLogs');
+    localStorage.setItem('cf_clean_v1', 'true');
+  }
+
   const [currentRole, setCurrentRole] = useState<UserRole>('business_admin');
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [publicView, setPublicView] = useState<boolean>(() => {
@@ -151,11 +169,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_USERS;
   });
 
-  const [currentUser, setCurrentUser] = useState<User>(() => users[0]);
+  const [currentUser, setCurrentUser] = useState<User>(() => {
+    const saved = localStorage.getItem('cf_current_user');
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    const savedUsers = localStorage.getItem('cf_users');
+    return savedUsers ? JSON.parse(savedUsers)[0] : INITIAL_USERS[0];
+  });
 
   const [business, setBusiness] = useState<Business>(() => {
     const saved = localStorage.getItem('cf_business');
-    return saved ? JSON.parse(saved) : INITIAL_BUSINESS;
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    return INITIAL_BUSINESS;
   });
 
   const [contacts, setContacts] = useState<Contact[]>(() => {
@@ -257,8 +285,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [activityLogs]);
 
   useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('cf_current_user', JSON.stringify(currentUser));
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (business) {
+      localStorage.setItem('cf_business', JSON.stringify(business));
+    }
+  }, [business]);
+
+  useEffect(() => {
     localStorage.setItem('cf_gatewaySettings', JSON.stringify(gatewaySettings));
   }, [gatewaySettings]);
+
+  // Load data from Supabase SQL database if configured
+  useEffect(() => {
+    if (isSupabaseConfigured && supabase) {
+      const loadSupabaseData = async () => {
+        try {
+          // 1. Fetch authenticated user profile & business workspace from Supabase SQL tables
+          const targetEmail = currentUser.email || localStorage.getItem('cf_user_email');
+          if (targetEmail) {
+            const { data: dbUser } = await supabase.from('users').select('*').eq('email', targetEmail).maybeSingle();
+            if (dbUser) {
+              setCurrentUser(dbUser as User);
+              if (dbUser.role) setCurrentRole(dbUser.role as UserRole);
+
+              if (dbUser.businessId) {
+                const { data: dbBiz } = await supabase.from('businesses').select('*').eq('id', dbUser.businessId).maybeSingle();
+                if (dbBiz) setBusiness(dbBiz as Business);
+              }
+            }
+          }
+
+          // 2. Fetch contacts, campaigns, templates, groups, message logs
+          const { data: contactsData } = await supabase.from('contacts').select('*');
+          if (contactsData && contactsData.length > 0) setContacts(contactsData as Contact[]);
+
+          const { data: campaignsData } = await supabase.from('campaigns').select('*');
+          if (campaignsData && campaignsData.length > 0) setCampaigns(campaignsData as Campaign[]);
+
+          const { data: templatesData } = await supabase.from('templates').select('*');
+          if (templatesData && templatesData.length > 0) setTemplates(templatesData as MessageTemplate[]);
+
+          const { data: groupsData } = await supabase.from('contact_groups').select('*');
+          if (groupsData && groupsData.length > 0) setGroups(groupsData as ContactGroup[]);
+        } catch {
+          // Gracefully fallback to local storage state
+        }
+      };
+      loadSupabaseData();
+    }
+  }, []);
 
   // Log activity helper
   const logActivity = (action: string, details: string) => {
@@ -653,6 +733,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     document.body.removeChild(link);
   };
 
+  // Profile Updates (Updates state, localStorage, and Supabase SQL tables)
+  const updateBusinessProfile = async (updatedData: Partial<Business>) => {
+    setBusiness(prev => {
+      const updatedBiz = { ...prev, ...updatedData };
+      localStorage.setItem('cf_business', JSON.stringify(updatedBiz));
+      if (isSupabaseConfigured && supabase && updatedBiz.id) {
+        supabase.from('businesses').upsert(updatedBiz).then();
+      }
+      return updatedBiz;
+    });
+
+    if (updatedData.name) {
+      setCurrentUser(prev => ({
+        ...prev,
+        businessName: updatedData.name
+      }));
+    }
+
+    logActivity('Business Profile Updated', 'Updated business workspace details.');
+    addNotification({
+      title: 'Business Profile Updated',
+      message: 'Business identity details saved successfully.',
+      type: 'success',
+      timestamp: 'Just now',
+      linkTab: 'settings',
+    });
+  };
+
+  const updateUserProfile = async (updatedData: Partial<User>) => {
+    setCurrentUser(prev => {
+      const updatedUser = { ...prev, ...updatedData };
+      localStorage.setItem('cf_current_user', JSON.stringify(updatedUser));
+      if (isSupabaseConfigured && supabase && updatedUser.id) {
+        supabase.from('users').upsert(updatedUser).then();
+      }
+      return updatedUser;
+    });
+    logActivity('User Profile Updated', 'Updated user profile information.');
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -670,6 +790,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentUser,
         business,
         setBusiness,
+        updateBusinessProfile,
+        updateUserProfile,
         contacts,
         groups,
         templates,

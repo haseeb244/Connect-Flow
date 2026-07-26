@@ -1,23 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
-
-const env = (import.meta as unknown as { env?: Record<string, string> }).env || {};
-const supabaseUrl = env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || '';
-
-export const isSupabaseConfigured = Boolean(
-  supabaseUrl && 
-  supabaseAnonKey && 
-  !supabaseUrl.includes('your-supabase-project')
-);
-
-// Create Supabase client instance (or null fallback)
-export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
-
-export const COMPLETE_SQL_SCHEMA = `-- ConnectFlow Complete PostgreSQL / Supabase Schema Definition
+-- ConnectFlow Complete PostgreSQL / Supabase Schema Definition
 -- Run this script in your Supabase SQL Editor (https://supabase.com/dashboard/project/_/sql)
 
+-- 1. Users Table
 CREATE TABLE IF NOT EXISTS public.users (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -31,6 +15,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     "createdAt" TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 2. Businesses Table
 CREATE TABLE IF NOT EXISTS public.businesses (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -48,6 +33,7 @@ CREATE TABLE IF NOT EXISTS public.businesses (
     "createdAt" TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 3. Contacts Table
 CREATE TABLE IF NOT EXISTS public.contacts (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -61,6 +47,7 @@ CREATE TABLE IF NOT EXISTS public.contacts (
     "lastContactedAt" TIMESTAMPTZ
 );
 
+-- 4. Contact Groups Table
 CREATE TABLE IF NOT EXISTS public.contact_groups (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -70,6 +57,7 @@ CREATE TABLE IF NOT EXISTS public.contact_groups (
     "createdAt" TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 5. Templates Table
 CREATE TABLE IF NOT EXISTS public.templates (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -81,6 +69,7 @@ CREATE TABLE IF NOT EXISTS public.templates (
     "createdAt" TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 6. Voice Recordings Table
 CREATE TABLE IF NOT EXISTS public.voice_recordings (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -91,6 +80,7 @@ CREATE TABLE IF NOT EXISTS public.voice_recordings (
     "createdAt" TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 7. Campaigns Table
 CREATE TABLE IF NOT EXISTS public.campaigns (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -113,6 +103,7 @@ CREATE TABLE IF NOT EXISTS public.campaigns (
     "createdAt" TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 8. Message Logs Table
 CREATE TABLE IF NOT EXISTS public.message_logs (
     id TEXT PRIMARY KEY,
     "recipientName" TEXT,
@@ -125,6 +116,7 @@ CREATE TABLE IF NOT EXISTS public.message_logs (
     "errorReason" TEXT
 );
 
+-- 9. Voice Call Logs Table
 CREATE TABLE IF NOT EXISTS public.voice_logs (
     id TEXT PRIMARY KEY,
     "recipientName" TEXT,
@@ -137,6 +129,7 @@ CREATE TABLE IF NOT EXISTS public.voice_logs (
     "campaignName" TEXT
 );
 
+-- 10. Automation Rules Table
 CREATE TABLE IF NOT EXISTS public.automation_rules (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -150,6 +143,7 @@ CREATE TABLE IF NOT EXISTS public.automation_rules (
     "createdAt" TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 11. Notifications Table
 CREATE TABLE IF NOT EXISTS public.notifications (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -160,6 +154,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
     "linkTab" TEXT
 );
 
+-- 12. Activity Logs Table
 CREATE TABLE IF NOT EXISTS public.activity_logs (
     id TEXT PRIMARY KEY,
     "userName" TEXT,
@@ -170,6 +165,7 @@ CREATE TABLE IF NOT EXISTS public.activity_logs (
     ip TEXT
 );
 
+-- 13. Gateway Settings Table
 CREATE TABLE IF NOT EXISTS public.gateway_settings (
     id TEXT PRIMARY KEY DEFAULT 'default',
     "smsProvider" TEXT DEFAULT 'twilio',
@@ -183,7 +179,7 @@ CREATE TABLE IF NOT EXISTS public.gateway_settings (
     "voiceCallerId" TEXT
 );
 
--- RLS & Policies
+-- Enable Row Level Security (RLS) and grant public access policies
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.businesses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contacts ENABLE ROW LEVEL SECURITY;
@@ -198,83 +194,17 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gateway_settings ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow anon users" ON public.users FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon businesses" ON public.businesses FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon contacts" ON public.contacts FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon contact_groups" ON public.contact_groups FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon templates" ON public.templates FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon voice_recordings" ON public.voice_recordings FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon campaigns" ON public.campaigns FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon message_logs" ON public.message_logs FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon voice_logs" ON public.voice_logs FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon automation_rules" ON public.automation_rules FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon notifications" ON public.notifications FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon activity_logs" ON public.activity_logs FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon gateway_settings" ON public.gateway_settings FOR ALL USING (true) WITH CHECK (true);
-`;
-
-export interface SupabaseTestResult {
-  configured: boolean;
-  connected: boolean;
-  url: string;
-  latencyMs?: number;
-  message: string;
-  tablesStatus?: { name: string; exists: boolean; count?: number }[];
-}
-
-export async function testSupabaseConnection(): Promise<SupabaseTestResult> {
-  if (!isSupabaseConfigured || !supabase) {
-    return {
-      configured: false,
-      connected: false,
-      url: supabaseUrl || 'Not configured in environment variables',
-      message: 'Supabase credentials (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY) are missing or set to defaults.'
-    };
-  }
-
-  const startTime = Date.now();
-  try {
-    const tablesToCheck = [
-      'users', 
-      'businesses', 
-      'contacts', 
-      'contact_groups', 
-      'templates', 
-      'voice_recordings', 
-      'campaigns', 
-      'message_logs', 
-      'voice_logs', 
-      'automation_rules',
-      'notifications',
-      'activity_logs',
-      'gateway_settings'
-    ];
-    const tablesStatus: { name: string; exists: boolean; count?: number }[] = [];
-
-    for (const table of tablesToCheck) {
-      const { data, error } = await supabase.from(table).select('id', { count: 'exact', head: true });
-      if (!error) {
-        tablesStatus.push({ name: table, exists: true, count: data ? data.length : 0 });
-      } else {
-        tablesStatus.push({ name: table, exists: false });
-      }
-    }
-
-    const latencyMs = Date.now() - startTime;
-    return {
-      configured: true,
-      connected: true,
-      url: supabaseUrl,
-      latencyMs,
-      message: `Successfully connected to Supabase PostgreSQL database in ${latencyMs}ms!`,
-      tablesStatus
-    };
-  } catch (err: any) {
-    return {
-      configured: true,
-      connected: false,
-      url: supabaseUrl,
-      message: err?.message || 'Failed to reach Supabase API host.'
-    };
-  }
-}
+-- Allow anon read/write permissions for web app integration
+CREATE POLICY "Allow anon all on users" ON public.users FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on businesses" ON public.businesses FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on contacts" ON public.contacts FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on contact_groups" ON public.contact_groups FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on templates" ON public.templates FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on voice_recordings" ON public.voice_recordings FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on campaigns" ON public.campaigns FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on message_logs" ON public.message_logs FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on voice_logs" ON public.voice_logs FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on automation_rules" ON public.automation_rules FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on notifications" ON public.notifications FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on activity_logs" ON public.activity_logs FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow anon all on gateway_settings" ON public.gateway_settings FOR ALL USING (true) WITH CHECK (true);

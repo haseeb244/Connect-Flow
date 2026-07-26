@@ -51,13 +51,38 @@ export const AuthModal: React.FC = () => {
         }
 
         const userObj = data.user;
-        setSuccessMessage(`Welcome back, ${userObj?.user_metadata?.full_name || loginName}! Redirecting...`);
+        let displayName = userObj?.user_metadata?.full_name || loginName;
 
-        setCurrentUser(prev => ({
-          ...prev,
-          email: userObj?.email || email,
-          name: userObj?.user_metadata?.full_name || loginName.charAt(0).toUpperCase() + loginName.slice(1)
-        }));
+        // Query user and business record from Supabase database tables
+        try {
+          const { data: dbUser } = await supabase.from('users').select('*').eq('email', email).maybeSingle();
+          if (dbUser) {
+            const userWithAvatar = {
+              ...dbUser,
+              avatar: dbUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(dbUser.name || email)}&background=8A9A5B&color=fff&bold=true`
+            };
+            setCurrentUser(userWithAvatar);
+            if (dbUser.role) setCurrentRole(dbUser.role);
+            displayName = dbUser.name;
+
+            if (dbUser.businessId) {
+              const { data: dbBiz } = await supabase.from('businesses').select('*').eq('id', dbUser.businessId).maybeSingle();
+              if (dbBiz) setBusiness(dbBiz);
+            }
+          } else {
+            const generatedAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=8A9A5B&color=fff&bold=true`;
+            setCurrentUser(prev => ({
+              ...prev,
+              email: userObj?.email || email,
+              name: displayName,
+              avatar: prev.avatar || generatedAvatar
+            }));
+          }
+        } catch {
+          // ignore lookup errors
+        }
+
+        setSuccessMessage(`Welcome back, ${displayName}! Redirecting...`);
 
         setTimeout(() => {
           localStorage.setItem('cf_is_logged_in', 'true');
@@ -77,12 +102,15 @@ export const AuthModal: React.FC = () => {
     }
 
     // Demo Mode Fallback if Supabase keys not set yet
-    setSuccessMessage(`Welcome back, ${loginName}! Redirecting to dashboard...`);
+    const demoName = loginName.charAt(0).toUpperCase() + loginName.slice(1);
+    const demoAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(demoName)}&background=8A9A5B&color=fff&bold=true`;
+    setSuccessMessage(`Welcome back, ${demoName}! Redirecting to dashboard...`);
     if (email) {
       setCurrentUser(prev => ({
         ...prev,
         email: email,
-        name: loginName.charAt(0).toUpperCase() + loginName.slice(1)
+        name: demoName,
+        avatar: prev.avatar || demoAvatar
       }));
     }
 
@@ -138,28 +166,79 @@ export const AuthModal: React.FC = () => {
         }
 
         const createdUser = data.user;
+
+        // Create business record in Supabase SQL table
+        const newBizId = `biz-${Date.now()}`;
+        const newBizData = {
+          id: newBizId,
+          name: businessName || 'My Business Workspace',
+          industry: industry || 'SME Service',
+          email: email,
+          phone: '',
+          timezone: 'UTC',
+          plan: 'free_trial',
+          status: 'active',
+          smsCredits: 10000,
+          whatsappCredits: 5000,
+          emailCredits: 25000,
+          voiceMinutes: 1000,
+          createdAt: new Date().toISOString()
+        };
+
+        // Create user record in Supabase SQL table
+        const defaultRegAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || email.split('@')[0])}&background=8A9A5B&color=fff&bold=true`;
+        const newUserData = {
+          id: createdUser?.id || `usr-${Date.now()}`,
+          name: fullName || email.split('@')[0],
+          email: email,
+          role: 'business_admin',
+          businessId: newBizId,
+          businessName: businessName || 'My Business Workspace',
+          avatar: defaultRegAvatar,
+          status: 'active',
+          createdAt: new Date().toISOString()
+        };
+
+        try {
+          await supabase.from('businesses').upsert(newBizData);
+          await supabase.from('users').upsert(newUserData);
+        } catch {
+          // ignore error if tables not yet created by admin
+        }
+
         setSuccessMessage(
           createdUser?.identities?.length === 0
             ? 'Account exists! Try logging in or checking your email.'
             : `Account created successfully! Welcome ${fullName || 'partner'}.`
         );
 
-        if (fullName) {
-          setCurrentUser(prev => ({
-            ...prev,
-            name: fullName,
-            email: email || prev.email,
-            role: 'business_admin'
-          }));
-        }
+        setCurrentUser({
+          id: newUserData.id,
+          name: newUserData.name,
+          email: newUserData.email,
+          role: 'business_admin',
+          businessId: newBizId,
+          businessName: newBizData.name,
+          avatar: defaultRegAvatar,
+          status: 'active',
+          createdAt: newUserData.createdAt
+        });
 
-        if (businessName) {
-          setBusiness(prev => ({
-            ...prev,
-            name: businessName,
-            industry: industry
-          }));
-        }
+        setBusiness({
+          id: newBizData.id,
+          name: newBizData.name,
+          industry: newBizData.industry,
+          email: newBizData.email,
+          phone: '',
+          timezone: 'UTC',
+          plan: 'free_trial',
+          status: 'active',
+          smsCredits: 10000,
+          whatsappCredits: 5000,
+          emailCredits: 25000,
+          voiceMinutes: 1000,
+          createdAt: newBizData.createdAt
+        });
 
         setTimeout(() => {
           localStorage.setItem('cf_is_logged_in', 'true');

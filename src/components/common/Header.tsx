@@ -166,9 +166,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications, onOpenCampa
             className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl hover:bg-[#F2F0EB] transition-colors"
           >
             <img 
-              src={currentUser.avatar} 
+              src={currentUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'User')}&background=8A9A5B&color=fff&bold=true`} 
               alt={currentUser.name} 
-              className="w-9 h-9 rounded-full border border-[#E5E2DA] object-cover"
+              className="w-9 h-9 rounded-full border border-[#E5E2DA] object-cover bg-slate-100"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'User')}&background=8A9A5B&color=fff&bold=true`;
+              }}
             />
             <div className="hidden lg:block text-left">
               <p className="text-xs font-bold text-[#2D302D] leading-none">{currentUser.name}</p>

@@ -447,7 +447,7 @@ export const ContactsTab: React.FC = () => {
                     required
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    placeholder="Eleanor Vance"
+                    placeholder="John Doe"
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-600 outline-none"
                   />
                 </div>
