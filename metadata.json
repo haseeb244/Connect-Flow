@@ -1,0 +1,6 @@
+{
+  "name": "ConnectFlow",
+  "description": "Automated Calling & Messaging SaaS platform for scheduled SMS, WhatsApp, Email, and Voice campaigns with rule-based automation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
