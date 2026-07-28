@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp, DashboardTab } from '../../context/AppContext';
 import { UserRole } from '../../types';
+import { UserAvatar } from './UserAvatar';
 import { 
   Share2, 
   Bell, 
@@ -165,14 +166,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications, onOpenCampa
             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
             className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl hover:bg-[#F2F0EB] transition-colors"
           >
-            <img 
-              src={currentUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'User')}&background=8A9A5B&color=fff&bold=true`} 
-              alt={currentUser.name} 
-              className="w-9 h-9 rounded-full border border-[#E5E2DA] object-cover bg-slate-100"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'User')}&background=8A9A5B&color=fff&bold=true`;
-              }}
-            />
+            <UserAvatar name={currentUser.name} avatar={currentUser.avatar} size="md" />
             <div className="hidden lg:block text-left">
               <p className="text-xs font-bold text-[#2D302D] leading-none">{currentUser.name}</p>
               <p className="text-[10px] text-[#8A857C] leading-none mt-1">{business.name}</p>
@@ -185,19 +179,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications, onOpenCampa
               className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-[#E5E2DA] shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-left"
               onMouseLeave={() => setProfileDropdownOpen(false)}
             >
-              <div className="px-3.5 py-2 border-b border-[#F2F0EB]">
-                <p className="text-xs font-bold text-[#2D302D]">{currentUser.name}</p>
-                <p className="text-[11px] text-[#8A857C]">{currentUser.email}</p>
-                <span className="mt-1 inline-block px-2 py-0.5 bg-[#F2F0EB] text-[#2D302D] text-[10px] font-semibold rounded-md">
-                  {business.industry}
-                </span>
+              <div className="px-3.5 py-2 border-b border-[#F2F0EB] flex items-center gap-2.5">
+                <UserAvatar name={currentUser.name} avatar={currentUser.avatar} size="sm" />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-[#2D302D] truncate">{currentUser.name}</p>
+                  <p className="text-[11px] text-[#8A857C] truncate">{currentUser.email}</p>
+                </div>
               </div>
+              <button
+                onClick={() => { setActiveTab('profile'); setProfileDropdownOpen(false); setPublicView(false); }}
+                className="w-full text-left px-3.5 py-2 text-xs text-[#2D302D] hover:bg-[#F9F8F6] flex items-center gap-2"
+              >
+                <UserIcon className="w-3.5 h-3.5 text-[#8A857C]" />
+                <span>My Profile</span>
+              </button>
               <button
                 onClick={() => { setActiveTab('settings'); setProfileDropdownOpen(false); setPublicView(false); }}
                 className="w-full text-left px-3.5 py-2 text-xs text-[#2D302D] hover:bg-[#F9F8F6] flex items-center gap-2"
               >
                 <Building2 className="w-3.5 h-3.5 text-[#8A857C]" />
-                <span>Company Profile & Settings</span>
+                <span>Company Settings</span>
               </button>
               <button
                 onClick={() => { setActiveTab('subscription'); setProfileDropdownOpen(false); setPublicView(false); }}

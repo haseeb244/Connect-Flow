@@ -17,14 +17,14 @@ export const SuperAdminTab: React.FC = () => {
   const { allBusinesses, switchBusiness, business: activeBusiness } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredBusinesses = (allBusinesses || []).filter(b => 
+  const filteredBusinesses = (allBusinesses || []).filter((b: any) => 
     (b.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
     (b.industry || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const totalMRR = (allBusinesses || []).reduce((acc, b) => {
-    if (b.plan === 'Pro Growth') return acc + 99;
-    if (b.plan === 'Enterprise') return acc + 249;
+  const totalMRR = (allBusinesses || []).reduce((acc: number, b: any) => {
+    if (b.plan === 'Pro Growth' || b.plan === 'pro') return acc + 99;
+    if (b.plan === 'Enterprise' || b.plan === 'enterprise') return acc + 249;
     return acc + 29;
   }, 0);
 
@@ -59,7 +59,7 @@ export const SuperAdminTab: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-xs font-semibold text-slate-500">Active Tenant Businesses</span>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">{allBusinesses.length}</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">{(allBusinesses || []).length}</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
@@ -112,7 +112,7 @@ export const SuperAdminTab: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
               {filteredBusinesses.map(b => {
-                const isActiveTenant = activeBusiness.id === b.id;
+                const isActiveTenant = activeBusiness?.id === b.id;
                 return (
                   <tr key={b.id} className="hover:bg-slate-50">
                     <td className="py-3 px-4 font-bold text-slate-900 flex items-center gap-2">
@@ -129,7 +129,7 @@ export const SuperAdminTab: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3 px-4 font-mono font-bold text-slate-800">
-                      {b.contactCount.toLocaleString()}
+                      {(b.contactCount || 0).toLocaleString()}
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 uppercase">

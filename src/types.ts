@@ -44,12 +44,13 @@ export interface Business {
   phone: string;
   timezone: string;
   address?: string;
-  plan: 'free_trial' | 'basic' | 'pro' | 'enterprise';
+  plan: string;
   status: 'active' | 'suspended';
   smsCredits: number;
   whatsappCredits: number;
   emailCredits: number;
   voiceMinutes: number;
+  contactCount?: number;
   createdAt: string;
 }
 
@@ -202,6 +203,7 @@ export interface PaymentInvoice {
 export interface ActivityLog {
   id: string;
   userName: string;
+  userEmail?: string;
   userRole: UserRole;
   action: string;
   details: string;

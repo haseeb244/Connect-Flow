@@ -18,6 +18,7 @@ import { AutomationTab } from './components/dashboard/AutomationTab';
 import { ReportsTab } from './components/dashboard/ReportsTab';
 import { SubscriptionTab } from './components/dashboard/SubscriptionTab';
 import { SettingsTab } from './components/dashboard/SettingsTab';
+import { ProfileTab } from './components/dashboard/ProfileTab';
 import { StaffTab } from './components/dashboard/StaffTab';
 import { SuperAdminTab } from './components/dashboard/SuperAdminTab';
 
@@ -66,6 +67,8 @@ const MainAppContent: React.FC = () => {
         return <SubscriptionTab />;
       case 'settings':
         return <SettingsTab />;
+      case 'profile':
+        return <ProfileTab />;
       case 'staff':
         return <StaffTab />;
       case 'superadmin':

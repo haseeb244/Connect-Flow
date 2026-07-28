@@ -20,6 +20,7 @@ import {
 import { 
   INITIAL_USERS, 
   INITIAL_BUSINESS, 
+  INITIAL_ALL_BUSINESSES,
   INITIAL_CONTACTS, 
   INITIAL_CONTACT_GROUPS, 
   INITIAL_TEMPLATES, 
@@ -47,6 +48,7 @@ export type DashboardTab =
   | 'reports' 
   | 'subscription' 
   | 'settings' 
+  | 'profile'
   | 'staff' 
   | 'superadmin';
 
@@ -68,6 +70,8 @@ interface AppContextType {
   setCurrentUser: React.Dispatch<React.SetStateAction<User>>;
   business: Business;
   setBusiness: React.Dispatch<React.SetStateAction<Business>>;
+  allBusinesses: Business[];
+  switchBusiness: (businessId: string) => void;
   updateBusinessProfile: (updated: Partial<Business>) => Promise<void> | void;
   updateUserProfile: (updated: Partial<User>) => Promise<void> | void;
   contacts: Contact[];
@@ -116,11 +120,15 @@ interface AppContextType {
   toggleAutomationRule: (id: string) => void;
   addAutomationRule: (rule: Omit<AutomationRule, 'id' | 'createdAt' | 'executionCount'>) => void;
   deleteAutomationRule: (id: string) => void;
+  toggleRule: (id: string) => void;
+  addRule: (rule: Omit<AutomationRule, 'id' | 'createdAt' | 'executionCount'>) => void;
+  deleteRule: (id: string) => void;
   triggerRuleSimulation: (ruleId: string) => void;
 
   // Actions - Staff
   addStaffUser: (user: Omit<User, 'id' | 'createdAt'>) => void;
   toggleUserStatus: (id: string) => void;
+  deleteUser: (id: string) => void;
 
   // Actions - Notifications
   markNotificationRead: (id: string) => void;
@@ -129,6 +137,9 @@ interface AppContextType {
 
   // Direct Message Composer Simulator
   sendDirectMessage: (recipientName: string, recipientPhoneOrEmail: string, channel: 'sms' | 'whatsapp' | 'email' | 'voice', content: string) => void;
+
+  // Billing & Subscription
+  upgradePlan: (planName: string) => void;
 
   // Utility
   logActivity: (action: string, details: string) => void;
@@ -184,6 +195,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try { return JSON.parse(saved); } catch { /* ignore */ }
     }
     return INITIAL_BUSINESS;
+  });
+
+  const [allBusinesses, setAllBusinesses] = useState<Business[]>(() => {
+    const saved = localStorage.getItem('cf_all_businesses');
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    return INITIAL_ALL_BUSINESSES;
   });
 
   const [contacts, setContacts] = useState<Contact[]>(() => {
@@ -668,18 +687,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Staff Actions
-  const addStaffUser = (userData: Omit<User, 'id' | 'createdAt'>) => {
+  const addStaffUser = async (userData: Omit<User, 'id' | 'createdAt'>) => {
     const newUser: User = {
       ...userData,
       id: `user-${Date.now()}`,
       createdAt: new Date().toISOString().split('T')[0],
     };
     setUsers(prev => [...prev, newUser]);
-    logActivity('Staff Account Added', `Added team member ${newUser.name} (${newUser.email})`);
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('users').upsert(newUser);
+      } catch (err) {
+        console.error('Error syncing staff member to Supabase:', err);
+      }
+    }
+    logActivity('Staff Account Added', `Added team member ${newUser.name} (${newUser.email}) as ${newUser.role}`);
   };
 
-  const toggleUserStatus = (id: string) => {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, status: u.status === 'active' ? 'inactive' : 'active' } : u));
+  const toggleUserStatus = async (id: string) => {
+    let newStatus: 'active' | 'inactive' = 'active';
+    setUsers(prev => prev.map(u => {
+      if (u.id === id) {
+        newStatus = u.status === 'active' ? 'inactive' : 'active';
+        return { ...u, status: newStatus };
+      }
+      return u;
+    }));
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('users').update({ status: newStatus }).eq('id', id);
+      } catch (err) {
+        console.error('Error updating user status in Supabase:', err);
+      }
+    }
+  };
+
+  const deleteUser = async (id: string) => {
+    const userToDelete = users.find(u => u.id === id);
+    setUsers(prev => prev.filter(u => u.id !== id));
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('users').delete().eq('id', id);
+      } catch (err) {
+        console.error('Error deleting user from Supabase:', err);
+      }
+    }
+    if (userToDelete) {
+      logActivity('Staff Account Removed', `Removed team member ${userToDelete.name} (${userToDelete.email})`);
+    }
   };
 
   // Direct Message Sending Simulator
@@ -773,6 +828,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logActivity('User Profile Updated', 'Updated user profile information.');
   };
 
+  const upgradePlan = async (planName: string) => {
+    setBusiness(prev => ({ ...prev, plan: planName }));
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('businesses').update({ plan: planName }).eq('id', business.id);
+      } catch (err) {
+        console.error('Error updating plan in Supabase:', err);
+      }
+    }
+    logActivity('Plan Upgraded', `Upgraded subscription plan to ${planName}`);
+    addNotification({
+      title: 'Plan Upgraded',
+      message: `Your subscription plan has been upgraded to ${planName}.`,
+      type: 'success',
+      timestamp: 'Just now',
+      linkTab: 'subscription',
+    });
+  };
+
+  const switchBusiness = (businessId: string) => {
+    const target = allBusinesses.find(b => b.id === businessId);
+    if (target) {
+      setBusiness(target);
+      localStorage.setItem('cf_business', JSON.stringify(target));
+      logActivity('Business Context Switched', `Switched workspace context to ${target.name}`);
+      addNotification({
+        title: 'Tenant Context Switched',
+        message: `Now operating in ${target.name} workspace.`,
+        type: 'info',
+        timestamp: 'Just now',
+        linkTab: 'overview',
+      });
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -790,6 +880,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentUser,
         business,
         setBusiness,
+        allBusinesses,
+        switchBusiness,
         updateBusinessProfile,
         updateUserProfile,
         contacts,
@@ -824,15 +916,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleAutomationRule,
         addAutomationRule,
         deleteAutomationRule,
+        toggleRule: toggleAutomationRule,
+        addRule: addAutomationRule,
+        deleteRule: deleteAutomationRule,
         triggerRuleSimulation,
         addStaffUser,
         toggleUserStatus,
+        deleteUser,
         markNotificationRead,
         clearAllNotifications,
         addNotification,
         sendDirectMessage,
         logActivity,
         exportToCSV,
+        upgradePlan,
         clearAllSampleData,
       }}
     >

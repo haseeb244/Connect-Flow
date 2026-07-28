@@ -179,6 +179,11 @@ CREATE TABLE IF NOT EXISTS public.gateway_settings (
     "voiceCallerId" TEXT
 );
 
+-- 14. Storage Bucket Setup for Avatars
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
 -- Enable Row Level Security (RLS) and grant public access policies
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.businesses ENABLE ROW LEVEL SECURITY;

@@ -20,7 +20,9 @@ import {
 } from 'lucide-react';
 
 export const AutomationTab: React.FC = () => {
-  const { automationRules, toggleRule, triggerRuleSimulation, addRule } = useApp();
+  const { automationRules, toggleAutomationRule, toggleRule, triggerRuleSimulation, addAutomationRule, addRule } = useApp();
+  const createRule = addAutomationRule || addRule;
+  const toggleRuleState = toggleAutomationRule || toggleRule;
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   
@@ -34,7 +36,7 @@ export const AutomationTab: React.FC = () => {
     e.preventDefault();
     if (!name) return;
 
-    addRule({
+    createRule({
       title: name,
       triggerType,
       channel,
@@ -42,7 +44,6 @@ export const AutomationTab: React.FC = () => {
       offsetValue,
       offsetUnit: 'days',
       isActive: true,
-      executionCount: 0,
     });
 
     setName('');
@@ -110,7 +111,7 @@ export const AutomationTab: React.FC = () => {
                 </span>
 
                 <button
-                  onClick={() => toggleRule(rule.id)}
+                  onClick={() => toggleRuleState(rule.id)}
                   className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer"
                 >
                   <span>{rule.isActive ? 'ACTIVE' : 'PAUSED'}</span>

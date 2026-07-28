@@ -17,7 +17,8 @@ import {
   Zap,
   Sparkles,
   ChevronRight,
-  Layers
+  Layers,
+  User
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -47,9 +48,10 @@ export const Sidebar: React.FC = () => {
   ];
 
   const secondaryNavItems = [
+    { id: 'profile' as DashboardTab, label: 'My Profile', icon: User },
     { id: 'subscription' as DashboardTab, label: 'Subscription & Billing', icon: CreditCard },
     { id: 'staff' as DashboardTab, label: 'Team & Staff', icon: UserCheck },
-    { id: 'settings' as DashboardTab, label: 'Settings & Gateways', icon: Settings },
+    { id: 'settings' as DashboardTab, label: 'Business Settings', icon: Settings },
   ];
 
   if (currentRole === 'super_admin') {

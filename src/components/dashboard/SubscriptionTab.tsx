@@ -221,8 +221,8 @@ export const SubscriptionTab: React.FC = () => {
               <tr key={inv.id} className="hover:bg-slate-50">
                 <td className="py-3 px-4 font-mono font-bold text-slate-900">{inv.id}</td>
                 <td className="py-3 px-4 text-slate-600">{inv.date}</td>
-                <td className="py-3 px-4 font-semibold text-slate-800">{inv.plan}</td>
-                <td className="py-3 px-4 font-mono font-bold text-slate-900">{inv.amount}</td>
+                <td className="py-3 px-4 font-semibold text-slate-800">{inv.planName || (inv as any).plan}</td>
+                <td className="py-3 px-4 font-mono font-bold text-slate-900">${inv.amount}</td>
                 <td className="py-3 px-4">
                   <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 uppercase">
                     {inv.status}
