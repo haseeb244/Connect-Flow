@@ -26,6 +26,7 @@ export const Sidebar: React.FC = () => {
     activeTab, 
     setActiveTab, 
     currentRole, 
+    setCurrentRole,
     contacts, 
     campaigns, 
     automationRules,
@@ -49,18 +50,11 @@ export const Sidebar: React.FC = () => {
 
   const secondaryNavItems = [
     { id: 'profile' as DashboardTab, label: 'My Profile', icon: User },
-    { id: 'subscription' as DashboardTab, label: 'Subscription & Billing', icon: CreditCard },
     { id: 'staff' as DashboardTab, label: 'Team & Staff', icon: UserCheck },
+    { id: 'superadmin' as DashboardTab, label: 'Super Admin Portal', icon: ShieldAlert },
+    { id: 'subscription' as DashboardTab, label: 'Subscription & Billing', icon: CreditCard },
     { id: 'settings' as DashboardTab, label: 'Business Settings', icon: Settings },
   ];
-
-  if (currentRole === 'super_admin') {
-    secondaryNavItems.unshift({
-      id: 'superadmin' as DashboardTab,
-      label: 'Super Admin Portal',
-      icon: ShieldAlert,
-    });
-  }
 
   return (
     <aside className="w-64 bg-[#2D302D] text-[#EBE9E4] flex flex-col shrink-0 h-screen border-r border-[#3F433F] hidden md:flex select-none z-30">
@@ -134,6 +128,9 @@ export const Sidebar: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => {
+                    if (item.id === 'superadmin') {
+                      setCurrentRole('super_admin');
+                    }
                     setActiveTab(item.id);
                     setPublicView(false);
                   }}

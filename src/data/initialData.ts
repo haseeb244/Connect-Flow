@@ -19,8 +19,8 @@ import {
 export const INITIAL_USERS: User[] = [
   {
     id: 'user-1',
-    name: 'Business Admin',
-    email: 'admin@connectflow.io',
+    name: 'Abdul Haseeb',
+    email: 'haseeb2408f@aptechsite.net',
     role: 'business_admin',
     businessId: 'biz-1',
     businessName: 'My Business Workspace',
