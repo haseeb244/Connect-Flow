@@ -35,103 +35,128 @@ export const AuthModal: React.FC = () => {
     setSuccessMessage('');
     setLoading(true);
 
-    const loginName = email ? email.split('@')[0] : 'Admin User';
+    const cleanEmail = email.toLowerCase().trim();
 
+    // 1. Try Supabase Auth if configured
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
+          email: cleanEmail,
           password
         });
 
-        if (error) {
-          // Fallback seamlessly to local session so user is never blocked by Supabase Auth credentials/rate-limits
-          const demoName = loginName.charAt(0).toUpperCase() + loginName.slice(1);
-          setSuccessMessage(`Signing in to workspace for ${demoName}...`);
+        if (!error && data.user) {
+          const userObj = data.user;
+          let displayName = userObj?.user_metadata?.full_name || (cleanEmail ? cleanEmail.split('@')[0] : 'User');
+
+          try {
+            const { data: dbUser } = await supabase.from('users').select('*').eq('email', cleanEmail).maybeSingle();
+            if (dbUser) {
+              setCurrentUser(dbUser);
+              if (dbUser.role) setCurrentRole(dbUser.role);
+              displayName = dbUser.name;
+
+              if (dbUser.businessId) {
+                const { data: dbBiz } = await supabase.from('businesses').select('*').eq('id', dbUser.businessId).maybeSingle();
+                if (dbBiz) setBusiness(dbBiz);
+              }
+            } else {
+              setCurrentUser(prev => ({
+                ...prev,
+                email: userObj?.email || cleanEmail,
+                name: displayName,
+              }));
+            }
+          } catch {
+            // ignore
+          }
+
+          setSuccessMessage(`Welcome back, ${displayName}! Redirecting...`);
           setTimeout(() => {
-            setCurrentUser(prev => ({
-              ...prev,
-              email: email || prev.email,
-              name: demoName,
-            }));
             localStorage.setItem('cf_is_logged_in', 'true');
             setAuthModalOpen(false);
             setPublicView(false);
             setActiveTab('overview');
             setSuccessMessage('');
             setLoading(false);
-            logActivity('Workspace Login', `Logged in as ${email || loginName}`);
+            logActivity('Supabase Login', `Logged in as ${userObj?.email}`);
           }, 800);
           return;
         }
-
-        const userObj = data.user;
-        let displayName = userObj?.user_metadata?.full_name || loginName;
-
-        // Query user and business record from Supabase database tables
-        try {
-          const { data: dbUser } = await supabase.from('users').select('*').eq('email', email).maybeSingle();
-          if (dbUser) {
-            setCurrentUser(dbUser);
-            if (dbUser.role) setCurrentRole(dbUser.role);
-            displayName = dbUser.name;
-
-            if (dbUser.businessId) {
-              const { data: dbBiz } = await supabase.from('businesses').select('*').eq('id', dbUser.businessId).maybeSingle();
-              if (dbBiz) setBusiness(dbBiz);
-            }
-          } else {
-            setCurrentUser(prev => ({
-              ...prev,
-              email: userObj?.email || email,
-              name: displayName,
-              avatar: prev.avatar || ''
-            }));
-          }
-        } catch {
-          // ignore lookup errors
-        }
-
-        setSuccessMessage(`Welcome back, ${displayName}! Redirecting...`);
-
-        setTimeout(() => {
-          localStorage.setItem('cf_is_logged_in', 'true');
-          setAuthModalOpen(false);
-          setPublicView(false);
-          setActiveTab('overview');
-          setSuccessMessage('');
-          setLoading(false);
-          logActivity('Supabase Login', `Logged in as ${userObj?.email}`);
-        }, 800);
-        return;
-      } catch (err: any) {
-        setErrorMessage(err.message || 'Authentication failed');
-        setLoading(false);
-        return;
+      } catch {
+        // continue to check local registered accounts
       }
     }
 
-    // Demo Mode Fallback if Supabase keys not set yet
-    const demoName = loginName.charAt(0).toUpperCase() + loginName.slice(1);
-    setSuccessMessage(`Welcome back, ${demoName}! Redirecting to dashboard...`);
-    if (email) {
-      setCurrentUser(prev => ({
-        ...prev,
-        email: email,
-        name: demoName,
-        avatar: prev.avatar || ''
-      }));
+    // 2. Check local registered accounts from localStorage
+    let registeredUsers: any[] = [];
+    try {
+      registeredUsers = JSON.parse(localStorage.getItem('cf_registered_users') || '[]');
+    } catch {
+      registeredUsers = [];
     }
 
-    setTimeout(() => {
-      localStorage.setItem('cf_is_logged_in', 'true');
-      setAuthModalOpen(false);
-      setPublicView(false);
-      setActiveTab('overview');
-      setSuccessMessage('');
-      setLoading(false);
-      logActivity('User Login', `Logged in as ${email || 'Admin'}`);
-    }, 800);
+    const matchedAccount = registeredUsers.find((u: any) => u.email === cleanEmail);
+
+    if (matchedAccount) {
+      if (matchedAccount.password !== password) {
+        setErrorMessage('Invalid login credentials. Incorrect password.');
+        setLoading(false);
+        return;
+      }
+
+      // Password matches! Log in as registered user
+      setSuccessMessage(`Welcome back, ${matchedAccount.fullName}! Sign in successful.`);
+      setCurrentUser(prev => ({
+        ...prev,
+        name: matchedAccount.fullName,
+        email: matchedAccount.email,
+        role: matchedAccount.role || 'business_admin'
+      }));
+      setBusiness(prev => ({
+        ...prev,
+        name: matchedAccount.businessName || prev.name,
+        industry: matchedAccount.industry || prev.industry
+      }));
+
+      setTimeout(() => {
+        localStorage.setItem('cf_is_logged_in', 'true');
+        setAuthModalOpen(false);
+        setPublicView(false);
+        setActiveTab('overview');
+        setSuccessMessage('');
+        setLoading(false);
+        logActivity('Local Account Login', `Logged in as ${matchedAccount.email}`);
+      }, 800);
+      return;
+    }
+
+    // 3. Default demo accounts (e.g. admin@connectflow.io, haseeb2408f@aptechsite.net)
+    if (cleanEmail === 'admin@connectflow.io' || cleanEmail === 'haseeb2408f@aptechsite.net' || cleanEmail === 'admin') {
+      const demoDisplayName = cleanEmail === 'haseeb2408f@aptechsite.net' ? 'Abdul Haseeb' : 'Business Admin';
+      setSuccessMessage(`Welcome back, ${demoDisplayName}!`);
+      setCurrentUser(prev => ({
+        ...prev,
+        name: demoDisplayName,
+        email: cleanEmail,
+        role: 'business_admin'
+      }));
+
+      setTimeout(() => {
+        localStorage.setItem('cf_is_logged_in', 'true');
+        setAuthModalOpen(false);
+        setPublicView(false);
+        setActiveTab('overview');
+        setSuccessMessage('');
+        setLoading(false);
+        logActivity('Demo Login', `Logged in as ${cleanEmail}`);
+      }, 800);
+      return;
+    }
+
+    // If no account match and Supabase failed / wrong password:
+    setErrorMessage('Invalid email or password. Please verify your credentials or create a new account.');
+    setLoading(false);
   };
 
   const handleQuickLogin = (role: 'business_admin' | 'staff' | 'super_admin') => {
@@ -154,10 +179,29 @@ export const AuthModal: React.FC = () => {
     setSuccessMessage('');
     setLoading(true);
 
+    const cleanEmail = email.toLowerCase().trim();
+
+    // Save registered user locally for session and password matching
+    try {
+      const registered = JSON.parse(localStorage.getItem('cf_registered_users') || '[]');
+      const filtered = registered.filter((r: any) => r.email !== cleanEmail);
+      filtered.push({
+        email: cleanEmail,
+        password: password,
+        fullName: fullName || cleanEmail.split('@')[0],
+        businessName: businessName || 'My Business Workspace',
+        industry: industry || 'Clinic/Hospital',
+        role: 'business_admin'
+      });
+      localStorage.setItem('cf_registered_users', JSON.stringify(filtered));
+    } catch {
+      // ignore
+    }
+
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: {
             data: {
@@ -176,10 +220,10 @@ export const AuthModal: React.FC = () => {
             id: fallbackBizId,
             name: businessName || 'My Business Workspace',
             industry: industry || 'Clinic/Hospital',
-            email: email || 'admin@connectflow.io',
+            email: cleanEmail || 'admin@connectflow.io',
             phone: '',
             timezone: 'UTC',
-            plan: 'free_trial',
+            plan: 'free_trial' as const,
             status: 'active' as const,
             smsCredits: 10000,
             whatsappCredits: 5000,
@@ -190,8 +234,8 @@ export const AuthModal: React.FC = () => {
 
           const fallbackUserData = {
             id: `usr-${Date.now()}`,
-            name: fullName || (email ? email.split('@')[0] : 'Admin User'),
-            email: email || 'admin@connectflow.io',
+            name: fullName || (cleanEmail ? cleanEmail.split('@')[0] : 'Admin User'),
+            email: cleanEmail || 'admin@connectflow.io',
             role: 'business_admin' as const,
             businessId: fallbackBizId,
             businessName: businessName || 'My Business Workspace',
@@ -224,11 +268,11 @@ export const AuthModal: React.FC = () => {
           id: newBizId,
           name: businessName || 'My Business Workspace',
           industry: industry || 'SME Service',
-          email: email,
+          email: cleanEmail,
           phone: '',
           timezone: 'UTC',
-          plan: 'free_trial',
-          status: 'active',
+          plan: 'free_trial' as const,
+          status: 'active' as const,
           smsCredits: 10000,
           whatsappCredits: 5000,
           emailCredits: 25000,
@@ -239,13 +283,13 @@ export const AuthModal: React.FC = () => {
         // Create user record in Supabase SQL table
         const newUserData = {
           id: createdUser?.id || `usr-${Date.now()}`,
-          name: fullName || email.split('@')[0],
-          email: email,
-          role: 'business_admin',
+          name: fullName || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          role: 'business_admin' as const,
           businessId: newBizId,
           businessName: businessName || 'My Business Workspace',
           avatar: '',
-          status: 'active',
+          status: 'active' as const,
           createdAt: new Date().toISOString()
         };
 
@@ -315,7 +359,7 @@ export const AuthModal: React.FC = () => {
       setCurrentUser(prev => ({
         ...prev,
         name: fullName,
-        email: email || prev.email,
+        email: cleanEmail || prev.email,
         role: 'business_admin'
       }));
     }
@@ -437,36 +481,9 @@ export const AuthModal: React.FC = () => {
         )}
 
         {errorMessage && (
-          <div className="bg-rose-50 border-y border-rose-200 p-3 text-xs font-bold text-rose-700 flex flex-col sm:flex-row items-center gap-2 justify-center text-center">
-            <div className="flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setErrorMessage('');
-                setSuccessMessage('Entering instant local workspace...');
-                setTimeout(() => {
-                  if (fullName || email) {
-                    setCurrentUser(prev => ({
-                      ...prev,
-                      name: fullName || (email ? email.split('@')[0] : 'Admin User'),
-                      email: email || prev.email,
-                    }));
-                  }
-                  localStorage.setItem('cf_is_logged_in', 'true');
-                  setAuthModalOpen(false);
-                  setPublicView(false);
-                  setCurrentRole('business_admin');
-                  setActiveTab('overview');
-                  setSuccessMessage('');
-                }, 600);
-              }}
-              className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-xs shrink-0"
-            >
-              Bypass & Enter Dashboard
-            </button>
+          <div className="bg-rose-50 border-y border-rose-200 p-3 text-xs font-bold text-rose-700 flex items-center gap-2 justify-center text-center">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{errorMessage}</span>
           </div>
         )}
 
