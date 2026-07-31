@@ -12,6 +12,7 @@ import {
   MessageLog, 
   VoiceCallLog, 
   AutomationRule, 
+  AutomatedVoiceRule,
   NotificationItem, 
   PaymentInvoice, 
   ActivityLog, 
@@ -28,6 +29,7 @@ import {
   INITIAL_CAMPAIGNS, 
   INITIAL_MESSAGE_LOGS, 
   INITIAL_VOICE_LOGS, 
+  INITIAL_AUTOMATED_VOICE_RULES,
   INITIAL_AUTOMATION_RULES, 
   INITIAL_NOTIFICATIONS, 
   INITIAL_INVOICES, 
@@ -81,6 +83,7 @@ interface AppContextType {
   campaigns: Campaign[];
   messageLogs: MessageLog[];
   voiceLogs: VoiceCallLog[];
+  automatedVoiceRules: AutomatedVoiceRule[];
   automationRules: AutomationRule[];
   notifications: NotificationItem[];
   users: User[];
@@ -115,6 +118,11 @@ interface AppContextType {
 
   // Actions - Voice Calls
   retryVoiceCall: (callId: string) => void;
+  addVoiceCallLog: (log: Omit<VoiceCallLog, 'id' | 'timestamp' | 'retryCount'>) => void;
+  addAutomatedVoiceRule: (rule: Omit<AutomatedVoiceRule, 'id' | 'createdAt' | 'totalCallsDispatched' | 'dtmfConfirmationRate'>) => void;
+  toggleAutomatedVoiceRule: (id: string) => void;
+  deleteAutomatedVoiceRule: (id: string) => void;
+  dispatchAutoDialerCampaign: (groupName: string, recordingTitle: string, persona: string) => void;
 
   // Actions - Automations
   toggleAutomationRule: (id: string) => void;
@@ -243,6 +251,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_VOICE_LOGS;
   });
 
+  const [automatedVoiceRules, setAutomatedVoiceRules] = useState<AutomatedVoiceRule[]>(() => {
+    const saved = localStorage.getItem('cf_automatedVoiceRules');
+    return saved ? JSON.parse(saved) : INITIAL_AUTOMATED_VOICE_RULES;
+  });
+
   const [automationRules, setAutomationRules] = useState<AutomationRule[]>(() => {
     const saved = localStorage.getItem('cf_automationRules');
     return saved ? JSON.parse(saved) : INITIAL_AUTOMATION_RULES;
@@ -293,6 +306,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem('cf_voiceLogs', JSON.stringify(voiceLogs));
   }, [voiceLogs]);
+
+  useEffect(() => {
+    localStorage.setItem('cf_automatedVoiceRules', JSON.stringify(automatedVoiceRules));
+  }, [automatedVoiceRules]);
 
   useEffect(() => {
     localStorage.setItem('cf_automationRules', JSON.stringify(automationRules));
@@ -586,7 +603,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 1500);
   };
 
-  // Voice Call Retry
+  // Voice Call Helpers
   const retryVoiceCall = (callId: string) => {
     setVoiceLogs(prev => prev.map(call => {
       if (call.id === callId) {
@@ -607,6 +624,74 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       type: 'success',
       timestamp: 'Just now',
       linkTab: 'voice_calls',
+    });
+  };
+
+  const addVoiceCallLog = (logData: Omit<VoiceCallLog, 'id' | 'timestamp' | 'retryCount'>) => {
+    const newLog: VoiceCallLog = {
+      ...logData,
+      id: `vlog-${Date.now()}`,
+      retryCount: 0,
+      timestamp: new Date().toLocaleString(),
+    };
+    setVoiceLogs(prev => [newLog, ...prev]);
+  };
+
+  const addAutomatedVoiceRule = (ruleData: Omit<AutomatedVoiceRule, 'id' | 'createdAt' | 'totalCallsDispatched' | 'dtmfConfirmationRate'>) => {
+    const newRule: AutomatedVoiceRule = {
+      ...ruleData,
+      id: `vrule-${Date.now()}`,
+      totalCallsDispatched: 0,
+      dtmfConfirmationRate: 100,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setAutomatedVoiceRules(prev => [newRule, ...prev]);
+    logActivity('Automated Voice Rule Created', `Created auto-call rule "${newRule.name}"`);
+    addNotification({
+      title: 'Automated Call Rule Active',
+      message: `Rule "${newRule.name}" has been enabled for automatic call dispatch.`,
+      type: 'success',
+      timestamp: 'Just now',
+    });
+  };
+
+  const toggleAutomatedVoiceRule = (id: string) => {
+    setAutomatedVoiceRules(prev => prev.map(r => r.id === id ? { ...r, isActive: !r.isActive } : r));
+  };
+
+  const deleteAutomatedVoiceRule = (id: string) => {
+    setAutomatedVoiceRules(prev => prev.filter(r => r.id !== id));
+  };
+
+  const dispatchAutoDialerCampaign = (groupName: string, recordingTitle: string, persona: string) => {
+    const groupContacts = contacts.length > 0 ? contacts : [
+      { name: 'Dr. Sarah Connor', phone: '+1 (555) 234-8901' },
+      { name: 'Michael Scott', phone: '+1 (555) 890-1234' },
+      { name: 'Robert Downey Jr.', phone: '+1 (555) 901-2345' }
+    ];
+
+    const newLogs: VoiceCallLog[] = groupContacts.map((cnt, i) => ({
+      id: `vlog-auto-${Date.now()}-${i}`,
+      recipientName: cnt.name,
+      phone: cnt.phone,
+      recordingTitle,
+      duration: '00:26',
+      status: i % 4 === 0 ? 'no_answer' : 'completed',
+      dtmfPressed: i % 4 === 0 ? 'None' : '1 (Confirmed)',
+      aiPersona: persona,
+      callType: 'campaign',
+      retryCount: 0,
+      timestamp: new Date().toLocaleString(),
+      campaignName: `Auto-Dialer Batch: ${groupName}`
+    }));
+
+    setVoiceLogs(prev => [...newLogs, ...prev]);
+    logActivity('Auto-Dialer Dispatched', `Dispatched voice campaign calls to ${groupContacts.length} recipients in "${groupName}".`);
+    addNotification({
+      title: 'Auto-Dialer Batch Complete',
+      message: `Successfully dialed ${groupContacts.length} contacts for group "${groupName}".`,
+      type: 'success',
+      timestamp: 'Just now',
     });
   };
 
@@ -823,6 +908,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUser(prev => {
       const updatedUser = { ...prev, ...updatedData };
       localStorage.setItem('cf_current_user', JSON.stringify(updatedUser));
+      
+      try {
+        const registeredUsers = JSON.parse(localStorage.getItem('cf_registered_users') || '[]');
+        const idx = registeredUsers.findIndex((u: any) => u.email === updatedUser.email);
+        if (idx !== -1) {
+          registeredUsers[idx].avatar = updatedUser.avatar || '';
+          registeredUsers[idx].fullName = updatedUser.name;
+          localStorage.setItem('cf_registered_users', JSON.stringify(registeredUsers));
+        }
+      } catch {
+        // ignore
+      }
+
       if (isSupabaseConfigured && supabase && updatedUser.id) {
         supabase.from('users').upsert(updatedUser).then();
       }
@@ -894,6 +992,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         campaigns,
         messageLogs,
         voiceLogs,
+        automatedVoiceRules,
         automationRules,
         notifications,
         users,
@@ -916,6 +1015,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateCampaignStatus,
         runCampaignSimulation,
         retryVoiceCall,
+        addVoiceCallLog,
+        addAutomatedVoiceRule,
+        toggleAutomatedVoiceRule,
+        deleteAutomatedVoiceRule,
+        dispatchAutoDialerCampaign,
         toggleAutomationRule,
         addAutomationRule,
         deleteAutomationRule,

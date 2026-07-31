@@ -9,6 +9,7 @@ import {
   MessageLog, 
   VoiceCallLog, 
   AutomationRule, 
+  AutomatedVoiceRule,
   NotificationItem, 
   SubscriptionPlan, 
   PaymentInvoice, 
@@ -110,13 +111,160 @@ export const INITIAL_CONTACTS: Contact[] = [];
 
 export const INITIAL_TEMPLATES: MessageTemplate[] = [];
 
-export const INITIAL_VOICE_RECORDINGS: VoiceRecording[] = [];
+export const INITIAL_VOICE_RECORDINGS: VoiceRecording[] = [
+  {
+    id: 'rec-1',
+    title: '24h Medical Appointment Confirmation IVR',
+    category: 'Appointment Reminder',
+    durationSeconds: 28,
+    fileSize: '1.4 MB',
+    aiPersona: 'Rachel (Warm Female AI)',
+    isTts: true,
+    scriptText: 'Hello {{name}}, this is ConnectFlow Health calling to confirm your appointment scheduled for {{date}}. Press 1 to confirm, Press 2 to speak with our front desk, or Press 3 to reschedule.',
+    createdAt: '2026-07-28'
+  },
+  {
+    id: 'rec-2',
+    title: 'Monthly Fee Due & Overdue Collection Call',
+    category: 'Fee Collection',
+    durationSeconds: 35,
+    fileSize: '1.8 MB',
+    aiPersona: 'Marcus (Authoritative Male AI)',
+    isTts: true,
+    scriptText: 'Dear {{name}}, your account balance of {{amount}} is due. Please press 1 to receive an instant SMS payment link, or Press 2 to request a callback from accounts.',
+    createdAt: '2026-07-25'
+  },
+  {
+    id: 'rec-3',
+    title: 'Urgent Campus Notice & Weather Alert',
+    category: 'Emergency Broadcast',
+    durationSeconds: 20,
+    fileSize: '1.0 MB',
+    aiPersona: 'Priya (Clear Bilingual AI)',
+    isTts: false,
+    scriptText: 'Important Notice: Campus operations will resume at 10:00 AM tomorrow. Please press 1 to acknowledge receipt of this broadcast.',
+    createdAt: '2026-07-20'
+  }
+];
 
 export const INITIAL_CAMPAIGNS: Campaign[] = [];
 
 export const INITIAL_MESSAGE_LOGS: MessageLog[] = [];
 
-export const INITIAL_VOICE_LOGS: VoiceCallLog[] = [];
+export const INITIAL_VOICE_LOGS: VoiceCallLog[] = [
+  {
+    id: 'vlog-101',
+    recipientName: 'Dr. Sarah Connor',
+    phone: '+1 (555) 234-8901',
+    recordingTitle: '24h Medical Appointment Confirmation IVR',
+    duration: '00:32',
+    status: 'completed',
+    dtmfPressed: '1 (Confirmed)',
+    aiPersona: 'Rachel (Warm Female AI)',
+    callType: 'automated_trigger',
+    retryCount: 0,
+    timestamp: '2026-07-31 09:15 AM',
+    transcript: [
+      { speaker: 'AI System', text: 'Hello Sarah, this is ConnectFlow Health calling to confirm your appointment.', time: '00:02' },
+      { speaker: 'AI System', text: 'Press 1 to confirm your attendance or Press 2 to reschedule.', time: '00:08' },
+      { speaker: 'Customer', text: '[DTMF Key 1 Pressed - Confirmed]', time: '00:15' },
+      { speaker: 'AI System', text: 'Thank you! Your appointment has been locked in. See you soon.', time: '00:20' }
+    ]
+  },
+  {
+    id: 'vlog-102',
+    recipientName: 'Michael Scott',
+    phone: '+1 (555) 890-1234',
+    recordingTitle: 'Monthly Fee Due & Overdue Collection Call',
+    duration: '00:45',
+    status: 'completed',
+    dtmfPressed: '1 (SMS Link Sent)',
+    aiPersona: 'Marcus (Authoritative Male AI)',
+    callType: 'automated_trigger',
+    retryCount: 0,
+    timestamp: '2026-07-31 08:30 AM',
+    transcript: [
+      { speaker: 'AI System', text: 'Dear Michael, your monthly tuition fee of $250 is due today.', time: '00:03' },
+      { speaker: 'AI System', text: 'Press 1 to receive a direct SMS payment link to your mobile phone.', time: '00:12' },
+      { speaker: 'Customer', text: '[DTMF Key 1 Pressed]', time: '00:22' },
+      { speaker: 'AI System', text: 'Payment link sent via SMS to +1 (555) 890-1234. Thank you.', time: '00:28' }
+    ]
+  },
+  {
+    id: 'vlog-103',
+    recipientName: 'Jennifer Aniston',
+    phone: '+1 (555) 345-6789',
+    recordingTitle: '24h Medical Appointment Confirmation IVR',
+    duration: '00:00',
+    status: 'no_answer',
+    dtmfPressed: 'None',
+    aiPersona: 'Rachel (Warm Female AI)',
+    callType: 'automated_trigger',
+    retryCount: 1,
+    timestamp: '2026-07-31 08:00 AM'
+  },
+  {
+    id: 'vlog-104',
+    recipientName: 'Robert Downey Jr.',
+    phone: '+1 (555) 901-2345',
+    recordingTitle: 'Urgent Campus Notice & Weather Alert',
+    duration: '00:18',
+    status: 'completed',
+    dtmfPressed: '1 (Acknowledged)',
+    aiPersona: 'Priya (Clear Bilingual AI)',
+    callType: 'campaign',
+    retryCount: 0,
+    timestamp: '2026-07-30 04:15 PM'
+  }
+];
+
+export const INITIAL_AUTOMATED_VOICE_RULES: AutomatedVoiceRule[] = [
+  {
+    id: 'vrule-1',
+    name: 'Auto 24h Appointment Confirmation Call',
+    triggerEvent: 'appointment_reminder',
+    targetGroup: 'Upcoming Patients / Appointments',
+    aiPersona: 'Rachel (Warm Female AI)',
+    recordingTitle: '24h Medical Appointment Confirmation IVR',
+    ttsScript: 'Hello {{name}}, this is ConnectFlow Health calling to confirm your appointment on {{date}}. Press 1 to confirm attendance or Press 2 to reschedule.',
+    autoRetryCount: 3,
+    retryIntervalMinutes: 15,
+    isActive: true,
+    totalCallsDispatched: 142,
+    dtmfConfirmationRate: 88,
+    createdAt: '2026-07-15'
+  },
+  {
+    id: 'vrule-2',
+    name: 'Fee Overdue Auto-Dialer & IVR Collector',
+    triggerEvent: 'fee_reminder',
+    targetGroup: 'Fee Pending Group',
+    aiPersona: 'Marcus (Authoritative Male AI)',
+    recordingTitle: 'Monthly Fee Due & Overdue Collection Call',
+    ttsScript: 'Dear {{name}}, your account balance of {{amount}} is due. Press 1 to receive an instant payment link on SMS, or Press 2 to request a callback from accounts.',
+    autoRetryCount: 2,
+    retryIntervalMinutes: 30,
+    isActive: true,
+    totalCallsDispatched: 98,
+    dtmfConfirmationRate: 74,
+    createdAt: '2026-07-18'
+  },
+  {
+    id: 'vrule-3',
+    name: 'E-Commerce Delivery Confirmation Call',
+    triggerEvent: 'order_delivery',
+    targetGroup: 'Courier & Parcel Receivers',
+    aiPersona: 'Priya (Clear Bilingual AI)',
+    recordingTitle: 'Delivery Confirmation Call',
+    ttsScript: 'Hello {{name}}, your order #{{orderNo}} is out for delivery today. Press 1 if you will be available to receive it, or Press 2 to leave with neighbor.',
+    autoRetryCount: 2,
+    retryIntervalMinutes: 20,
+    isActive: false,
+    totalCallsDispatched: 54,
+    dtmfConfirmationRate: 91,
+    createdAt: '2026-07-22'
+  }
+];
 
 export const INITIAL_AUTOMATION_RULES: AutomationRule[] = [];
 

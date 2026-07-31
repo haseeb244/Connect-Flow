@@ -87,6 +87,12 @@ export interface MessageTemplate {
   createdAt: string;
 }
 
+export interface VoiceCallTranscript {
+  speaker: 'AI System' | 'Customer';
+  text: string;
+  time: string;
+}
+
 export interface VoiceRecording {
   id: string;
   title: string;
@@ -94,6 +100,9 @@ export interface VoiceRecording {
   audioUrl?: string; // sample or synth audio
   fileSize: string;
   category: string;
+  scriptText?: string;
+  aiPersona?: string;
+  isTts?: boolean;
   createdAt: string;
 }
 
@@ -138,9 +147,29 @@ export interface VoiceCallLog {
   recordingTitle: string;
   duration: string;
   status: CallStatus;
+  dtmfPressed?: string;
+  aiPersona?: string;
+  transcript?: VoiceCallTranscript[];
+  callType?: 'automated_trigger' | 'campaign' | 'instant_dial' | 'ivr_survey';
   retryCount: number;
   timestamp: string;
   campaignName?: string;
+}
+
+export interface AutomatedVoiceRule {
+  id: string;
+  name: string;
+  triggerEvent: 'appointment_reminder' | 'fee_reminder' | 'order_delivery' | 'emergency_alert' | 'event_reminder';
+  targetGroup: string;
+  aiPersona: string;
+  recordingTitle: string;
+  ttsScript: string;
+  autoRetryCount: number;
+  retryIntervalMinutes: number;
+  isActive: boolean;
+  totalCallsDispatched: number;
+  dtmfConfirmationRate: number;
+  createdAt: string;
 }
 
 export type AutomationTrigger = 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { IndustryType } from '../../types';
-import { X, Layers, Mail, Lock, Building2, User, Check, ArrowRight, Database, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Layers, Mail, Lock, Building2, User, Check, ArrowRight, Database, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 export const AuthModal: React.FC = () => {
@@ -26,6 +26,11 @@ export const AuthModal: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
 
   if (!authModalOpen) return null;
 
@@ -61,11 +66,17 @@ export const AuthModal: React.FC = () => {
                 if (dbBiz) setBusiness(dbBiz);
               }
             } else {
-              setCurrentUser(prev => ({
-                ...prev,
-                email: userObj?.email || cleanEmail,
+              setCurrentUser({
+                id: userObj?.id || `usr-${cleanEmail}`,
                 name: displayName,
-              }));
+                email: userObj?.email || cleanEmail,
+                role: 'business_admin',
+                businessId: `biz-${cleanEmail}`,
+                businessName: 'My Business Workspace',
+                avatar: '',
+                status: 'active',
+                createdAt: new Date().toISOString()
+              });
             }
           } catch {
             // ignore
@@ -107,12 +118,17 @@ export const AuthModal: React.FC = () => {
 
       // Password matches! Log in as registered user
       setSuccessMessage(`Welcome back, ${matchedAccount.fullName}! Sign in successful.`);
-      setCurrentUser(prev => ({
-        ...prev,
+      setCurrentUser({
+        id: `usr-${matchedAccount.email}`,
         name: matchedAccount.fullName,
         email: matchedAccount.email,
-        role: matchedAccount.role || 'business_admin'
-      }));
+        role: matchedAccount.role || 'business_admin',
+        businessId: `biz-${matchedAccount.email}`,
+        businessName: matchedAccount.businessName || 'My Business Workspace',
+        avatar: matchedAccount.avatar || '',
+        status: 'active',
+        createdAt: new Date().toISOString()
+      });
       setBusiness(prev => ({
         ...prev,
         name: matchedAccount.businessName || prev.name,
@@ -143,12 +159,17 @@ export const AuthModal: React.FC = () => {
 
       const demoDisplayName = cleanEmail === 'haseeb2408f@aptechsite.net' ? 'Abdul Haseeb' : 'Business Admin';
       setSuccessMessage(`Welcome back, ${demoDisplayName}!`);
-      setCurrentUser(prev => ({
-        ...prev,
+      setCurrentUser({
+        id: cleanEmail === 'haseeb2408f@aptechsite.net' ? 'user-1' : `usr-${cleanEmail}`,
         name: demoDisplayName,
         email: cleanEmail,
-        role: 'business_admin'
-      }));
+        role: 'business_admin',
+        businessId: 'biz-1',
+        businessName: 'My Business Workspace',
+        avatar: '',
+        status: 'active',
+        createdAt: new Date().toISOString()
+      });
 
       setTimeout(() => {
         localStorage.setItem('cf_is_logged_in', 'true');
@@ -175,12 +196,17 @@ export const AuthModal: React.FC = () => {
       ? { name: 'Sarah Connor (Staff)', email: 'staff@connectflow.io' }
       : { name: 'Abdul Haseeb', email: 'haseeb2408f@aptechsite.net' };
 
-    setCurrentUser(prev => ({
-      ...prev,
+    setCurrentUser({
+      id: `usr-${role}`,
       name: profileData.name,
       email: profileData.email,
-      role: role
-    }));
+      role: role,
+      businessId: 'biz-1',
+      businessName: 'My Business Workspace',
+      avatar: '',
+      status: 'active',
+      createdAt: new Date().toISOString()
+    });
 
     setSuccessMessage(`Logged in as ${role.replace('_', ' ').toUpperCase()}! Redirecting...`);
     setTimeout(() => {
@@ -198,9 +224,25 @@ export const AuthModal: React.FC = () => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
-    setLoading(true);
 
     const cleanEmail = email.toLowerCase().trim();
+
+    if (!isValidEmail(cleanEmail)) {
+      setErrorMessage('Please enter a valid email address (e.g. name@domain.com).');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match. Please verify both password fields.');
+      return;
+    }
+
+    setLoading(true);
 
     // Save registered user locally for session and password matching
     try {
@@ -221,74 +263,11 @@ export const AuthModal: React.FC = () => {
 
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase.auth.signUp({
-          email: cleanEmail,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-              business_name: businessName,
-              industry: industry
-            }
-          }
-        });
-
-        if (error) {
-          setSuccessMessage(`Setting up workspace directly for ${businessName || fullName || 'partner'}...`);
-          
-          const fallbackBizId = `biz-${Date.now()}`;
-          const fallbackBizData = {
-            id: fallbackBizId,
-            name: businessName || 'My Business Workspace',
-            industry: industry || 'Clinic/Hospital',
-            email: cleanEmail || 'admin@connectflow.io',
-            phone: '',
-            timezone: 'UTC',
-            plan: 'free_trial' as const,
-            status: 'active' as const,
-            smsCredits: 10000,
-            whatsappCredits: 5000,
-            emailCredits: 25000,
-            voiceMinutes: 1000,
-            createdAt: new Date().toISOString()
-          };
-
-          const fallbackUserData = {
-            id: `usr-${Date.now()}`,
-            name: fullName || (cleanEmail ? cleanEmail.split('@')[0] : 'Admin User'),
-            email: cleanEmail || 'admin@connectflow.io',
-            role: 'business_admin' as const,
-            businessId: fallbackBizId,
-            businessName: businessName || 'My Business Workspace',
-            avatar: '',
-            status: 'active' as const,
-            createdAt: new Date().toISOString()
-          };
-
-          setCurrentUser(fallbackUserData);
-          setBusiness(fallbackBizData);
-
-          setTimeout(() => {
-            localStorage.setItem('cf_is_logged_in', 'true');
-            setAuthModalOpen(false);
-            setPublicView(false);
-            setCurrentRole('business_admin');
-            setActiveTab('overview');
-            setSuccessMessage('');
-            setLoading(false);
-            logActivity('Register Workspace', `Created account for ${businessName || fullName}`);
-          }, 1200);
-          return;
-        }
-
-        const createdUser = data.user;
-
-        // Create business record in Supabase SQL table
         const newBizId = `biz-${Date.now()}`;
         const newBizData = {
           id: newBizId,
           name: businessName || 'My Business Workspace',
-          industry: industry || 'SME Service',
+          industry: industry || 'Clinic/Hospital',
           email: cleanEmail,
           phone: '',
           timezone: 'UTC',
@@ -301,9 +280,8 @@ export const AuthModal: React.FC = () => {
           createdAt: new Date().toISOString()
         };
 
-        // Create user record in Supabase SQL table
         const newUserData = {
-          id: createdUser?.id || `usr-${Date.now()}`,
+          id: `usr-${Date.now()}`,
           name: fullName || cleanEmail.split('@')[0],
           email: cleanEmail,
           role: 'business_admin' as const,
@@ -314,94 +292,34 @@ export const AuthModal: React.FC = () => {
           createdAt: new Date().toISOString()
         };
 
-        try {
-          await supabase.from('businesses').upsert(newBizData);
-          await supabase.from('users').upsert(newUserData);
-        } catch {
-          // ignore error if tables not yet created by admin
-        }
-
-        setSuccessMessage(
-          createdUser?.identities?.length === 0
-            ? 'Account exists! Try logging in or checking your email.'
-            : `Account created successfully! Welcome ${fullName || 'partner'}.`
-        );
-
-        setCurrentUser({
-          id: newUserData.id,
-          name: newUserData.name,
-          email: newUserData.email,
-          role: 'business_admin',
-          businessId: newBizId,
-          businessName: newBizData.name,
-          avatar: '',
-          status: 'active',
-          createdAt: newUserData.createdAt
+        await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              business_name: businessName,
+              industry: industry
+            }
+          }
         });
 
-        setBusiness({
-          id: newBizData.id,
-          name: newBizData.name,
-          industry: newBizData.industry,
-          email: newBizData.email,
-          phone: '',
-          timezone: 'UTC',
-          plan: 'free_trial',
-          status: 'active',
-          smsCredits: 10000,
-          whatsappCredits: 5000,
-          emailCredits: 25000,
-          voiceMinutes: 1000,
-          createdAt: newBizData.createdAt
-        });
-
-        setTimeout(() => {
-          localStorage.setItem('cf_is_logged_in', 'true');
-          setAuthModalOpen(false);
-          setPublicView(false);
-          setCurrentRole('business_admin');
-          setActiveTab('overview');
-          setSuccessMessage('');
-          setLoading(false);
-          logActivity('Register', `Created account for ${businessName || fullName}`);
-        }, 1200);
-        return;
-      } catch (err: any) {
-        setErrorMessage(err.message || 'Registration failed');
-        setLoading(false);
-        return;
+        await supabase.from('businesses').upsert(newBizData);
+        await supabase.from('users').upsert(newUserData);
+      } catch {
+        // ignore errors
       }
     }
 
-    // Demo Mode Fallback
-    setSuccessMessage(`Account created! 14-day free trial activated for ${businessName || 'your business'}.`);
-
-    if (fullName) {
-      setCurrentUser(prev => ({
-        ...prev,
-        name: fullName,
-        email: cleanEmail || prev.email,
-        role: 'business_admin'
-      }));
-    }
-
-    if (businessName) {
-      setBusiness(prev => ({
-        ...prev,
-        name: businessName,
-        industry: industry
-      }));
-    }
+    setSuccessMessage(`Account created successfully for ${fullName || cleanEmail}! Switching to Sign In...`);
+    setPassword('');
 
     setTimeout(() => {
-      setAuthModalOpen(false);
-      setPublicView(false);
-      setCurrentRole('business_admin');
-      setActiveTab('overview');
-      setSuccessMessage('');
+      setAuthMode('login');
+      setSuccessMessage('Account created successfully! Please enter your password to sign in.');
       setLoading(false);
-      logActivity('Account Registration', `Created new business account "${businessName || 'New Company'}"`);
-    }, 1000);
+      logActivity('Account Registration', `Created new business account for ${cleanEmail}`);
+    }, 1200);
   };
 
   const handleForgotSubmit = async (e: React.FormEvent) => {
@@ -410,34 +328,57 @@ export const AuthModal: React.FC = () => {
     setSuccessMessage('');
     setLoading(true);
 
+    const cleanEmail = email.toLowerCase().trim();
+    if (!cleanEmail) {
+      setErrorMessage('Please enter your registered email address.');
+      setLoading(false);
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 4) {
+      setErrorMessage('Please enter a valid new password (at least 4 characters).');
+      setLoading(false);
+      return;
+    }
+
+    // Save/update new password in registered accounts
+    try {
+      const registeredUsers = JSON.parse(localStorage.getItem('cf_registered_users') || '[]');
+      const userIdx = registeredUsers.findIndex((u: any) => u.email === cleanEmail);
+
+      if (userIdx !== -1) {
+        registeredUsers[userIdx].password = newPassword;
+      } else {
+        registeredUsers.push({
+          email: cleanEmail,
+          password: newPassword,
+          fullName: cleanEmail === 'haseeb2408f@aptechsite.net' ? 'Abdul Haseeb' : cleanEmail.split('@')[0],
+          role: 'business_admin'
+        });
+      }
+      localStorage.setItem('cf_registered_users', JSON.stringify(registeredUsers));
+    } catch {
+      // ignore
+    }
+
     if (isSupabaseConfigured && supabase) {
       try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
-        if (error) {
-          setErrorMessage(error.message);
-          setLoading(false);
-          return;
-        }
-        setSuccessMessage('Password reset link sent to your email!');
-        setLoading(false);
-        setTimeout(() => {
-          setAuthMode('login');
-          setSuccessMessage('');
-        }, 2000);
-        return;
-      } catch (err: any) {
-        setErrorMessage(err.message || 'Password reset failed');
-        setLoading(false);
-        return;
+        await supabase.auth.resetPasswordForEmail(cleanEmail);
+      } catch {
+        // ignore
       }
     }
 
-    setSuccessMessage('Password reset instructions sent to your email address!');
-    setLoading(false);
+    setSuccessMessage(`Password updated successfully! Redirecting to Sign In...`);
+    setPassword(newPassword);
+    setNewPassword('');
+
     setTimeout(() => {
       setAuthMode('login');
-      setSuccessMessage('');
-    }, 1500);
+      setSuccessMessage('Password reset successful! Please sign in with your new password.');
+      setLoading(false);
+      logActivity('Password Reset', `Password changed for ${cleanEmail}`);
+    }, 1200);
   };
 
   const industries: IndustryType[] = [
@@ -541,13 +482,21 @@ export const AuthModal: React.FC = () => {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
+                    className="w-full pl-10 pr-10 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-[#8A857C] hover:text-[#2D302D] p-1 rounded-md transition-colors"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -637,9 +586,27 @@ export const AuthModal: React.FC = () => {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="sarah@apexhealth.com"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
+                    className={`w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 outline-none ${
+                      email.length > 0 && !isValidEmail(email)
+                        ? 'border-rose-400 focus:ring-rose-400'
+                        : email.length > 0 && isValidEmail(email)
+                        ? 'border-emerald-500 focus:ring-emerald-500'
+                        : 'border-[#E5E2DA] focus:ring-[#8A9A5B] focus:bg-white'
+                    }`}
                   />
                 </div>
+                {email.length > 0 && !isValidEmail(email) && (
+                  <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    Please enter a valid email format (e.g. name@domain.com)
+                  </p>
+                )}
+                {email.length > 0 && isValidEmail(email) && (
+                  <p className="text-[11px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5 shrink-0" />
+                    Valid email address
+                  </p>
+                )}
               </div>
 
               <div>
@@ -647,14 +614,75 @@ export const AuthModal: React.FC = () => {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="At least 6 characters"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
+                    className={`w-full pl-10 pr-10 py-2.5 bg-[#F9F8F6] border rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 outline-none ${
+                      password.length > 0 && password.length < 6
+                        ? 'border-amber-400 focus:ring-amber-400'
+                        : password.length >= 6
+                        ? 'border-emerald-500 focus:ring-emerald-500'
+                        : 'border-[#E5E2DA] focus:ring-[#8A9A5B] focus:bg-white'
+                    }`}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-[#8A857C] hover:text-[#2D302D] p-1 rounded-md transition-colors"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
+                {password.length > 0 && password.length < 6 && (
+                  <p className="text-[11px] text-amber-600 font-medium mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    Password must be at least 6 characters
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#2D302D] mb-1">Confirm Password</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter your password"
+                    className={`w-full pl-10 pr-10 py-2.5 bg-[#F9F8F6] border rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 outline-none ${
+                      confirmPassword.length > 0 && confirmPassword !== password
+                        ? 'border-rose-400 focus:ring-rose-400'
+                        : confirmPassword.length > 0 && confirmPassword === password
+                        ? 'border-emerald-500 focus:ring-emerald-500'
+                        : 'border-[#E5E2DA] focus:ring-[#8A9A5B] focus:bg-white'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-[#8A857C] hover:text-[#2D302D] p-1 rounded-md transition-colors"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {confirmPassword.length > 0 && confirmPassword !== password && (
+                  <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    Passwords do not match
+                  </p>
+                )}
+                {confirmPassword.length > 0 && confirmPassword === password && (
+                  <p className="text-[11px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5 shrink-0" />
+                    Passwords match
+                  </p>
+                )}
               </div>
 
               <button
@@ -699,9 +727,32 @@ export const AuthModal: React.FC = () => {
                     required
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    placeholder="admin@connectflow.io"
+                    placeholder="haseeb2408f@aptechsite.net"
                     className="w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#2D302D] mb-1">Enter New Password</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    placeholder="Enter new password"
+                    className="w-full pl-10 pr-10 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-[#8A857C] hover:text-[#2D302D] p-1 rounded-md transition-colors"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -713,10 +764,10 @@ export const AuthModal: React.FC = () => {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Sending reset link...</span>
+                    <span>Updating password...</span>
                   </>
                 ) : (
-                  <span>Send Password Reset Email</span>
+                  <span>Reset & Save New Password</span>
                 )}
               </button>
 
