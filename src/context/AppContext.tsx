@@ -152,7 +152,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load initial states with localStorage persistence if available
   // Run automatic one-time cleanup of old cached mock data
-  if (typeof window !== 'undefined' && localStorage.getItem('cf_clean_v1') !== 'true') {
+  if (typeof window !== 'undefined' && localStorage.getItem('cf_clean_v3') !== 'true') {
     localStorage.removeItem('cf_contacts');
     localStorage.removeItem('cf_groups');
     localStorage.removeItem('cf_templates');
@@ -163,7 +163,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem('cf_automationRules');
     localStorage.removeItem('cf_notifications');
     localStorage.removeItem('cf_activityLogs');
-    localStorage.setItem('cf_clean_v1', 'true');
+    localStorage.removeItem('cf_current_user');
+    localStorage.removeItem('cf_business');
+    localStorage.removeItem('cf_users');
+    localStorage.setItem('cf_clean_v3', 'true');
   }
 
   const [currentRole, setCurrentRole] = useState<UserRole>('business_admin');

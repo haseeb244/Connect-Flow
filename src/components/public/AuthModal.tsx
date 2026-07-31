@@ -131,8 +131,16 @@ export const AuthModal: React.FC = () => {
       return;
     }
 
-    // 3. Default demo accounts (e.g. admin@connectflow.io, haseeb2408f@aptechsite.net)
+    // 3. Default system accounts (e.g. haseeb2408f@aptechsite.net, admin@connectflow.io, admin)
     if (cleanEmail === 'admin@connectflow.io' || cleanEmail === 'haseeb2408f@aptechsite.net' || cleanEmail === 'admin') {
+      // Strictly check password for system accounts
+      const allowedPasswords = ['admin123', '123456', 'haseeb123', 'admin', 'password'];
+      if (!allowedPasswords.includes(password)) {
+        setErrorMessage('Invalid login credentials. Incorrect password.');
+        setLoading(false);
+        return;
+      }
+
       const demoDisplayName = cleanEmail === 'haseeb2408f@aptechsite.net' ? 'Abdul Haseeb' : 'Business Admin';
       setSuccessMessage(`Welcome back, ${demoDisplayName}!`);
       setCurrentUser(prev => ({
@@ -149,7 +157,7 @@ export const AuthModal: React.FC = () => {
         setActiveTab('overview');
         setSuccessMessage('');
         setLoading(false);
-        logActivity('Demo Login', `Logged in as ${cleanEmail}`);
+        logActivity('System Login', `Logged in as ${cleanEmail}`);
       }, 800);
       return;
     }
@@ -161,6 +169,19 @@ export const AuthModal: React.FC = () => {
 
   const handleQuickLogin = (role: 'business_admin' | 'staff' | 'super_admin') => {
     setCurrentRole(role);
+    const profileData = role === 'super_admin' 
+      ? { name: 'System Super Admin', email: 'superadmin@connectflow.io' }
+      : role === 'staff'
+      ? { name: 'Sarah Connor (Staff)', email: 'staff@connectflow.io' }
+      : { name: 'Abdul Haseeb', email: 'haseeb2408f@aptechsite.net' };
+
+    setCurrentUser(prev => ({
+      ...prev,
+      name: profileData.name,
+      email: profileData.email,
+      role: role
+    }));
+
     setSuccessMessage(`Logged in as ${role.replace('_', ' ').toUpperCase()}! Redirecting...`);
     setTimeout(() => {
       localStorage.setItem('cf_is_logged_in', 'true');
