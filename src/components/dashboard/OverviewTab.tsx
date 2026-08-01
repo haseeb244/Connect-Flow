@@ -85,7 +85,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onOpenCampaignWizard }
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveTab('voice')}
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+          >
+            <PhoneCall className="w-4 h-4" />
+            <span>Voice Call Simulator 📞</span>
+          </button>
           <button
             onClick={() => setActiveTab('contacts')}
             className="px-4 py-2 bg-white border border-[#E5E2DA] hover:bg-[#F9F8F6] text-[#2D302D] rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs"
@@ -138,13 +145,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onOpenCampaignWizard }
         </div>
 
         {/* Calls Made */}
-        <div className="bg-white border border-[#E5E2DA] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#8A9A5B] transition-colors">
+        <div 
+          onClick={() => setActiveTab('voice')}
+          className="bg-white border border-[#E5E2DA] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-purple-500 cursor-pointer transition-colors group"
+        >
           <div className="flex items-center justify-between">
-            <span className="p-2.5 rounded-xl bg-[#F2F0EB] text-[#2D302D]">
+            <span className="p-2.5 rounded-xl bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
               <PhoneCall className="w-5 h-5" />
             </span>
-            <span className="text-[11px] font-bold text-[#8A857C] bg-[#F2F0EB] border border-[#E5E2DA] px-2.5 py-0.5 rounded-full flex items-center gap-0.5">
-              <TrendingDown className="w-3 h-3" /> -2%
+            <span className="text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-200/60 px-2.5 py-0.5 rounded-full flex items-center gap-0.5">
+              Click to Open 📞
             </span>
           </div>
           <div className="mt-4">
