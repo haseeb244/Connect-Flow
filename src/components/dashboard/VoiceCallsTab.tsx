@@ -109,7 +109,13 @@ export const VoiceCallsTab: React.FC = () => {
   const [selectedPersonaForDispatch, setSelectedPersonaForDispatch] = useState<string>('Rachel (Warm Female AI)');
   const [isDispatchingBatch, setIsDispatchingBatch] = useState(false);
 
-  // Timer for Call Simulator
+  // Auto sync initial recipient name & phone when contacts exist
+  useEffect(() => {
+    if (contacts && contacts.length > 0 && (!simRecipientName || simRecipientName === 'Dr. Sarah Connor')) {
+      setSimRecipientName(contacts[0].name);
+      setSimPhone(contacts[0].phone);
+    }
+  }, [contacts, liveSimulatorOpen]);
   useEffect(() => {
     let timer: any;
     if (callState === 'connected') {
@@ -918,16 +924,31 @@ export const VoiceCallsTab: React.FC = () => {
                     <select
                       value={simRecipientName}
                       onChange={e => {
-                        const target = contacts.find(c => c.name === e.target.value);
-                        setSimRecipientName(e.target.value);
-                        if (target) setSimPhone(target.phone);
+                        const target = contacts.find(c => c.name === e.target.value || c.phone === e.target.value);
+                        if (target) {
+                          setSimRecipientName(target.name);
+                          setSimPhone(target.phone);
+                        } else {
+                          setSimRecipientName(e.target.value);
+                        }
                       }}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-white outline-none"
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-white outline-none focus:ring-2 focus:ring-purple-500"
                     >
                       {contacts.map(c => (
-                        <option key={c.id} value={c.name}>{c.name} ({c.phone})</option>
+                        <option key={c.id} value={c.name}>{c.name} — {c.phone}</option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Phone Number (Editable)</label>
+                    <input
+                      type="text"
+                      value={simPhone}
+                      onChange={e => setSimPhone(e.target.value)}
+                      placeholder="e.g. 03460895203"
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs font-mono font-bold text-emerald-400 outline-none focus:ring-2 focus:ring-purple-500"
+                    />
                   </div>
 
                   <div>

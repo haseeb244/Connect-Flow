@@ -105,9 +105,71 @@ export const INITIAL_ALL_BUSINESSES: Business[] = [
   },
 ];
 
-export const INITIAL_CONTACT_GROUPS: ContactGroup[] = [];
+export const INITIAL_CONTACT_GROUPS: ContactGroup[] = [
+  {
+    id: 'group-1',
+    name: 'VIP Clients',
+    description: 'High priority customer list',
+    color: '#8A9A5B',
+    contactCount: 4,
+    createdAt: '2026-07-01'
+  },
+  {
+    id: 'group-2',
+    name: 'Service Contacts',
+    description: 'General inquiry and support list',
+    color: '#3b82f6',
+    contactCount: 2,
+    createdAt: '2026-07-02'
+  }
+];
 
-export const INITIAL_CONTACTS: Contact[] = [];
+export const INITIAL_CONTACTS: Contact[] = [
+  {
+    id: 'cnt-03460895203',
+    name: 'Haseeb Client',
+    phone: '03460895203',
+    email: 'haseeb.client@example.com',
+    groupIds: ['group-1'],
+    tags: ['VIP', 'Active'],
+    customFields: { feeDue: '$150', appointmentDate: '2026-08-05' },
+    status: 'active',
+    createdAt: '2026-07-15'
+  },
+  {
+    id: 'cnt-03140368729',
+    name: 'Tech Client',
+    phone: '03140368729',
+    email: 'tech.client@example.com',
+    groupIds: ['group-1'],
+    tags: ['Verified'],
+    customFields: { feeDue: '$200', appointmentDate: '2026-08-06' },
+    status: 'active',
+    createdAt: '2026-07-16'
+  },
+  {
+    id: 'cnt-03332027154',
+    name: 'VIP Member',
+    phone: '03332027154',
+    email: 'vip.member@example.com',
+    groupIds: ['group-1'],
+    tags: ['Premium'],
+    customFields: { feeDue: '$350', appointmentDate: '2026-08-07' },
+    status: 'active',
+    createdAt: '2026-07-17'
+  },
+  {
+    id: 'cnt-03310003089',
+    name: 'Service Client',
+    phone: '03310003089',
+    email: 'service.client@example.com',
+    groupIds: ['group-2'],
+    tags: ['Support'],
+    customFields: { feeDue: '$0', appointmentDate: '2026-08-08' },
+    status: 'active',
+    createdAt: '2026-07-18'
+  }
+];
 
 export const INITIAL_TEMPLATES: MessageTemplate[] = [];
 

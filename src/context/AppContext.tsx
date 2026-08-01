@@ -218,12 +218,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [contacts, setContacts] = useState<Contact[]>(() => {
     const saved = localStorage.getItem('cf_contacts');
-    return saved ? JSON.parse(saved) : INITIAL_CONTACTS;
+    if (saved) {
+      try {
+        const parsed: Contact[] = JSON.parse(saved);
+        if (parsed.length > 0) {
+          // ensure initial numbers exist in contacts list if user had empty or previous state
+          const existingPhones = new Set(parsed.map(c => c.phone));
+          const missing = INITIAL_CONTACTS.filter(ic => !existingPhones.has(ic.phone));
+          return [...parsed, ...missing];
+        }
+      } catch { /* ignore */ }
+    }
+    return INITIAL_CONTACTS;
   });
 
   const [groups, setGroups] = useState<ContactGroup[]>(() => {
     const saved = localStorage.getItem('cf_groups');
-    return saved ? JSON.parse(saved) : INITIAL_CONTACT_GROUPS;
+    if (saved) {
+      try {
+        const parsed: ContactGroup[] = JSON.parse(saved);
+        if (parsed.length > 0) return parsed;
+      } catch { /* ignore */ }
+    }
+    return INITIAL_CONTACT_GROUPS;
   });
 
   const [templates, setTemplates] = useState<MessageTemplate[]>(() => {
