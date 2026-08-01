@@ -35,6 +35,7 @@ const MainAppContent: React.FC = () => {
   } = useApp();
 
   const [campaignWizardOpen, setCampaignWizardOpen] = useState(false);
+  const [notificationDrawerOpen, setNotificationDrawerOpen] = useState(false);
 
   if (publicView) {
     return (
@@ -108,7 +109,7 @@ const MainAppContent: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Top Header */}
         <Header 
-          onOpenNotifications={() => {}} 
+          onOpenNotifications={() => setNotificationDrawerOpen(true)} 
           onOpenCampaignWizard={() => setCampaignWizardOpen(true)} 
         />
 
@@ -122,7 +123,10 @@ const MainAppContent: React.FC = () => {
       <BottomNav />
 
       {/* Notification Drawer */}
-      <NotificationDrawer />
+      <NotificationDrawer 
+        isOpen={notificationDrawerOpen} 
+        onClose={() => setNotificationDrawerOpen(false)} 
+      />
 
       {/* Campaign Multi-step Wizard Modal */}
       <CampaignWizardModal 

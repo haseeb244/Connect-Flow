@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Contact, ContactGroup } from '../../types';
 import { 
@@ -56,6 +56,92 @@ export const ContactsTab: React.FC = () => {
   const [groupName, setGroupName] = useState('');
   const [groupDesc, setGroupDesc] = useState('');
   const [groupColor, setGroupColor] = useState('#3b82f6');
+
+  // File Upload Ref & States
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [importFileError, setImportFileError] = useState<string | null>(null);
+  const [importSuccessCount, setImportSuccessCount] = useState<number | null>(null);
+
+  // Parse Raw CSV/TXT String
+  const parseCSVText = (text: string) => {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) return [];
+    
+    const parsedContacts: any[] = [];
+    const hasHeader = lines[0].toLowerCase().includes('name') || lines[0].toLowerCase().includes('phone') || lines[0].toLowerCase().includes('email');
+    const startIdx = hasHeader ? 1 : 0;
+
+    for (let i = startIdx; i < lines.length; i++) {
+      const cols = lines[i].split(/[,;\t]/).map(c => c.replace(/^["']|["']$/g, '').trim());
+      if (cols.length === 0 || !cols[0]) continue;
+
+      const name = cols[0] || `Contact ${i + 1}`;
+      let phone = cols[1] || '';
+      let email = cols[2] || '';
+      let feeDue = cols[3] || '';
+
+      if (phone.includes('@') && !email) {
+        email = phone;
+        phone = '';
+      }
+
+      parsedContacts.push({
+        name,
+        phone: phone || '+1 (555) 000-0000',
+        email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+        groupIds: [groups[0]?.id || 'group-1'],
+        tags: ['File Import'],
+        customFields: feeDue ? { feeDue } : {},
+        status: 'active' as const,
+      });
+    }
+
+    return parsedContacts;
+  };
+
+  const handleProcessFile = (file: File) => {
+    setImportFileError(null);
+    setImportSuccessCount(null);
+
+    if (file.type === '' && !file.name.includes('.')) {
+      setImportFileError('🚫 Folders cannot be imported! Please select a valid .csv or .txt file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const parsed = parseCSVText(content);
+        if (parsed.length === 0) {
+          setImportFileError('No valid contacts found in file. Expected structure: Name, Phone, Email');
+          return;
+        }
+        importContacts(parsed);
+        setImportSuccessCount(parsed.length);
+        setTimeout(() => {
+          setImportModalOpen(false);
+          setImportSuccessCount(null);
+        }, 1500);
+      } catch (err) {
+        setImportFileError('An error occurred while processing file. Please upload a standard .csv or .txt file.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleProcessFile(e.target.files[0]);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleProcessFile(e.dataTransfer.files[0]);
+    }
+  };
 
   // Filtered Contacts List
   const filteredContacts = (contacts || []).filter(c => {
@@ -556,38 +642,80 @@ export const ContactsTab: React.FC = () => {
             <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
               <h3 className="text-sm font-bold flex items-center gap-2">
                 <Upload className="w-4 h-4 text-indigo-400" />
-                <span>Import Contacts via CSV</span>
+                <span>Import Contacts (.CSV File)</span>
               </h3>
-              <button onClick={() => setImportModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => { setImportModalOpen(false); setImportFileError(null); }} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 text-center space-y-4">
-              <div className="p-8 border-2 border-dashed border-indigo-300 rounded-2xl bg-indigo-50/50 hover:bg-indigo-50 transition-colors cursor-pointer">
-                <FileSpreadsheet className="w-12 h-12 text-indigo-600 mx-auto mb-2" />
-                <p className="text-xs font-bold text-slate-800">Drag and drop your CSV file here</p>
-                <p className="text-[11px] text-slate-500 mt-1">Supports columns: Name, Phone, Email, FeeDue, Date</p>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".csv,.txt,.tsv"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+
+              <div className="bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-xl text-left text-xs space-y-1">
+                <p className="font-bold flex items-center gap-1.5 text-amber-900">
+                  <span>ℹ️ Folder vs File Notice:</span>
+                </p>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  Folder uploading is not supported. Please select and upload a single <strong>.CSV</strong> or <strong>.TXT</strong> contact list file from your computer.
+                </p>
+              </div>
+
+              {importFileError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs font-semibold text-left">
+                  {importFileError}
+                </div>
+              )}
+
+              {importSuccessCount && (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-xs font-bold text-center">
+                  ✅ Successfully imported {importSuccessCount} contacts from file!
+                </div>
+              )}
+
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+                className="p-8 border-2 border-dashed border-indigo-300 rounded-2xl bg-indigo-50/50 hover:bg-indigo-50 transition-colors cursor-pointer group"
+              >
+                <FileSpreadsheet className="w-12 h-12 text-indigo-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <p className="text-xs font-bold text-slate-800">Click to Select or Drag & Drop .CSV File</p>
+                <p className="text-[11px] text-slate-500 mt-1">Supported columns: Name, Phone, Email, FeeDue</p>
+                <button
+                  type="button"
+                  className="mt-3 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-2xs inline-flex items-center gap-1.5"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  Browse File from Computer
+                </button>
               </div>
 
               <div className="p-3 bg-slate-100 rounded-xl text-left text-xs font-medium text-slate-700 space-y-1">
-                <p className="font-bold text-slate-900">Sample Rows Preview:</p>
-                <p className="font-mono text-[10px] text-slate-600">Jordan Belfort, +1 555-991-8822, $450.00</p>
-                <p className="font-mono text-[10px] text-slate-600">Rachel Green, +1 555-441-2099, $0.00</p>
+                <p className="font-bold text-slate-900">Sample CSV Format:</p>
+                <p className="font-mono text-[10px] text-slate-600">Jordan Belfort, +1 555-991-8822, jordan@example.com, $450.00</p>
+                <p className="font-mono text-[10px] text-slate-600">Rachel Green, +1 555-441-2099, rachel@example.com, $0.00</p>
               </div>
 
-              <div className="flex justify-between gap-3 pt-2">
+              <div className="flex justify-between items-center gap-3 pt-2 border-t border-slate-100">
                 <button
-                  onClick={() => setImportModalOpen(false)}
+                  onClick={() => { setImportModalOpen(false); setImportFileError(null); }}
                   className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-100"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCSVImportSimulated}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs"
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold shadow-2xs"
+                  title="Test import with 3 sample contacts"
                 >
-                  Confirm & Parse 3 Contacts
+                  Test Demo Parse (3 Contacts)
                 </button>
               </div>
             </div>
