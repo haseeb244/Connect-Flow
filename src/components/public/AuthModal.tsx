@@ -420,34 +420,35 @@ export const AuthModal: React.FC = () => {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2D302D]/70 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#2D302D]/75 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
       <div 
-        className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-[#E5E2DA] overflow-hidden relative animate-in zoom-in-95 duration-200"
+        className="w-full max-w-[420px] bg-white rounded-2xl shadow-2xl border border-[#E5E2DA] overflow-hidden relative animate-in zoom-in-95 duration-200 my-auto max-h-[92vh] flex flex-col custom-scrollbar"
         onClick={e => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={() => setAuthModalOpen(false)}
-          className="absolute top-4 right-4 p-2 rounded-full text-[#A8A59E] hover:text-[#2D302D] hover:bg-[#F2F0EB] transition-colors z-10"
+          className="absolute top-3 right-3 p-1.5 rounded-full text-[#A8A59E] hover:text-[#2D302D] hover:bg-[#F2F0EB] transition-colors z-10"
+          title="Close modal"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Modal Header */}
-        <div className="bg-[#2D302D] text-white p-6 pb-8 text-center relative overflow-hidden border-b border-[#3F433F]">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#8A9A5B] text-white mb-3 shadow-md">
-            <Layers className="w-6 h-6" />
+        <div className="bg-[#2D302D] text-white p-4 sm:p-5 text-center relative overflow-hidden border-b border-[#3F433F] shrink-0">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#8A9A5B] text-white mb-2 shadow-sm">
+            <Layers className="w-5 h-5" />
           </div>
-          <h2 className="text-xl font-extrabold tracking-tight">ConnectFlow SaaS</h2>
-          <p className="text-xs text-[#A8A59E] mt-1">
-            {authMode === 'login' ? 'Sign in to access your business communication suite' : authMode === 'register' ? 'Start your 14-day free trial in seconds' : 'Reset your account password'}
+          <h2 className="text-lg font-bold tracking-tight font-display">ConnectFlow SaaS</h2>
+          <p className="text-[11px] text-[#A8A59E] mt-0.5">
+            {authMode === 'login' ? 'Sign in to access your business workspace' : authMode === 'register' ? 'Start your 14-day free trial in seconds' : 'Reset your account password'}
           </p>
 
           {/* Nav Mode Switcher Pills */}
-          <div className="mt-4 flex justify-center gap-2">
+          <div className="mt-3 flex justify-center gap-1.5">
             <button
               onClick={() => { setAuthMode('login'); setErrorMessage(''); }}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+              className={`px-3.5 py-1 rounded-full text-[11px] font-bold transition-all ${
                 authMode === 'login' 
                   ? 'bg-[#8A9A5B] text-white shadow-xs' 
                   : 'bg-[#3F433F] text-[#A8A59E] hover:text-white'
@@ -457,7 +458,7 @@ export const AuthModal: React.FC = () => {
             </button>
             <button
               onClick={() => { setAuthMode('register'); setErrorMessage(''); }}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+              className={`px-3.5 py-1 rounded-full text-[11px] font-bold transition-all ${
                 authMode === 'register' 
                   ? 'bg-[#8A9A5B] text-white shadow-xs' 
                   : 'bg-[#3F433F] text-[#A8A59E] hover:text-white'
@@ -470,34 +471,34 @@ export const AuthModal: React.FC = () => {
 
         {/* Feedback Alert */}
         {successMessage && (
-          <div className="bg-[#8A9A5B]/15 border-y border-[#8A9A5B]/30 p-3 text-xs font-bold text-[#78884B] flex items-center gap-2 justify-center">
-            <Check className="w-4 h-4 text-[#8A9A5B]" />
+          <div className="bg-[#8A9A5B]/15 border-b border-[#8A9A5B]/30 p-2.5 text-xs font-bold text-[#78884B] flex items-center gap-2 justify-center shrink-0">
+            <Check className="w-4 h-4 text-[#8A9A5B] shrink-0" />
             <span>{successMessage}</span>
           </div>
         )}
 
         {errorMessage && (
-          <div className="bg-rose-50 border-y border-rose-200 p-3 text-xs font-bold text-rose-700 flex items-center gap-2 justify-center text-center">
+          <div className="bg-rose-50 border-b border-rose-200 p-2.5 text-xs font-bold text-rose-700 flex items-center gap-2 justify-center text-center shrink-0">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {/* Auth Forms */}
-        <div className="p-6">
+        <div className="p-4 sm:p-5 overflow-y-auto custom-scrollbar">
           {authMode === 'login' && (
-            <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <form onSubmit={handleLoginSubmit} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-bold text-[#2D302D] mb-1">Email Address</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
+                  <Mail className="w-4 h-4 text-[#8A857C] absolute left-3 top-2.5" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="admin@connectflow.io"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
+                    className="w-full pl-9 pr-3 py-2 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none transition-all"
                   />
                 </div>
               </div>
@@ -514,22 +515,22 @@ export const AuthModal: React.FC = () => {
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3 z-10 pointer-events-none" />
+                  <Lock className="w-4 h-4 text-[#8A857C] absolute left-3 top-2.5 z-10 pointer-events-none" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-12 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
+                    className="w-full pl-9 pr-10 py-2 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-2 z-20 p-1.5 text-slate-500 hover:text-slate-900 bg-slate-200/60 hover:bg-slate-300/80 rounded-lg transition-all flex items-center justify-center"
+                    className="absolute right-2 top-1.5 z-20 p-1 text-slate-500 hover:text-slate-900 rounded-md transition-all flex items-center justify-center"
                     title={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4 text-emerald-700" /> : <Eye className="w-4 h-4 text-slate-700" />}
+                    {showPassword ? <EyeOff className="w-3.5 h-3.5 text-emerald-700" /> : <Eye className="w-3.5 h-3.5 text-slate-600" />}
                   </button>
                 </div>
               </div>
@@ -537,7 +538,7 @@ export const AuthModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-[#8A9A5B] hover:bg-[#78884B] disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-[#8A9A5B] hover:bg-[#78884B] disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 mt-1"
               >
                 {loading ? (
                   <>
@@ -552,7 +553,7 @@ export const AuthModal: React.FC = () => {
                 )}
               </button>
 
-              <div className="text-center pt-2">
+              <div className="text-center pt-1">
                 <span className="text-xs text-[#8A857C]">Don't have an account? </span>
                 <button
                   type="button"
@@ -567,42 +568,44 @@ export const AuthModal: React.FC = () => {
 
           {authMode === 'register' && (
             <form onSubmit={handleRegisterSubmit} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-[#2D302D] mb-1">Full Name</label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={e => setFullName(e.target.value)}
-                    placeholder="Sarah Jenkins"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#2D302D] mb-1">Full Name</label>
+                  <div className="relative">
+                    <User className="w-3.5 h-3.5 text-[#8A857C] absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={e => setFullName(e.target.value)}
+                      placeholder="Sarah Jenkins"
+                      className="w-full pl-8 pr-2.5 py-2 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#2D302D] mb-1">Business Name</label>
+                  <div className="relative">
+                    <Building2 className="w-3.5 h-3.5 text-[#8A857C] absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      required
+                      value={businessName}
+                      onChange={e => setBusinessName(e.target.value)}
+                      placeholder="e.g. Apex Health"
+                      className="w-full pl-8 pr-2.5 py-2 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none transition-all"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#2D302D] mb-1">Company / Business Name</label>
-                <div className="relative">
-                  <Building2 className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
-                  <input
-                    type="text"
-                    required
-                    value={businessName}
-                    onChange={e => setBusinessName(e.target.value)}
-                    placeholder="e.g. My Business Workspace"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#2D302D] mb-1">Industry Sector</label>
+                <label className="block text-[11px] font-bold text-[#2D302D] mb-1">Industry Sector</label>
                 <select
                   value={industry}
                   onChange={e => setIndustry(e.target.value as IndustryType)}
-                  className="w-full px-3.5 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-bold text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] outline-none"
+                  className="w-full px-3 py-2 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-bold text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] outline-none"
                 >
                   {industries.map(ind => (
                     <option key={ind} value={ind}>{ind}</option>
@@ -611,16 +614,16 @@ export const AuthModal: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#2D302D] mb-1">Work Email</label>
+                <label className="block text-[11px] font-bold text-[#2D302D] mb-1">Work Email</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
+                  <Mail className="w-3.5 h-3.5 text-[#8A857C] absolute left-3 top-2.5" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="sarah@apexhealth.com"
-                    className={`w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 outline-none ${
+                    className={`w-full pl-8 pr-2.5 py-2 bg-[#F9F8F6] border rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 outline-none transition-all ${
                       email.length > 0 && !isValidEmail(email)
                         ? 'border-rose-400 focus:ring-rose-400'
                         : email.length > 0 && isValidEmail(email)
@@ -630,99 +633,76 @@ export const AuthModal: React.FC = () => {
                   />
                 </div>
                 {email.length > 0 && !isValidEmail(email) && (
-                  <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    Please enter a valid email format (e.g. name@domain.com)
-                  </p>
-                )}
-                {email.length > 0 && isValidEmail(email) && (
-                  <p className="text-[11px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5 shrink-0" />
-                    Valid email address
+                  <p className="text-[10px] text-rose-600 font-medium mt-0.5 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    Valid format required (e.g. name@domain.com)
                   </p>
                 )}
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#2D302D] mb-1">Password</label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="At least 6 characters"
-                    className={`w-full pl-10 pr-10 py-2.5 bg-[#F9F8F6] border rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 outline-none ${
-                      password.length > 0 && password.length < 6
-                        ? 'border-amber-400 focus:ring-amber-400'
-                        : password.length >= 6
-                        ? 'border-emerald-500 focus:ring-emerald-500'
-                        : 'border-[#E5E2DA] focus:ring-[#8A9A5B] focus:bg-white'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-[#8A857C] hover:text-[#2D302D] p-1 rounded-md transition-colors"
-                    title={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#2D302D] mb-1">Password</label>
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 text-[#8A857C] absolute left-3 top-2.5" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="Min 6 chars"
+                      className={`w-full pl-8 pr-8 py-2 bg-[#F9F8F6] border rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 outline-none transition-all ${
+                        password.length > 0 && password.length < 6
+                          ? 'border-amber-400 focus:ring-amber-400'
+                          : password.length >= 6
+                          ? 'border-emerald-500 focus:ring-emerald-500'
+                          : 'border-[#E5E2DA] focus:ring-[#8A9A5B] focus:bg-white'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-2 text-[#8A857C] hover:text-[#2D302D] transition-colors"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
                 </div>
-                {password.length > 0 && password.length < 6 && (
-                  <p className="text-[11px] text-amber-600 font-medium mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    Password must be at least 6 characters
-                  </p>
-                )}
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#2D302D] mb-1">Confirm Password</label>
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 text-[#8A857C] absolute left-3 top-2.5" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      placeholder="Re-enter password"
+                      className={`w-full pl-8 pr-8 py-2 bg-[#F9F8F6] border rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 outline-none transition-all ${
+                        confirmPassword.length > 0 && confirmPassword !== password
+                          ? 'border-rose-400 focus:ring-rose-400'
+                          : confirmPassword.length > 0 && confirmPassword === password
+                          ? 'border-emerald-500 focus:ring-emerald-500'
+                          : 'border-[#E5E2DA] focus:ring-[#8A9A5B] focus:bg-white'
+                      }`}
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#2D302D] mb-1">Confirm Password</label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter your password"
-                    className={`w-full pl-10 pr-10 py-2.5 bg-[#F9F8F6] border rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 outline-none ${
-                      confirmPassword.length > 0 && confirmPassword !== password
-                        ? 'border-rose-400 focus:ring-rose-400'
-                        : confirmPassword.length > 0 && confirmPassword === password
-                        ? 'border-emerald-500 focus:ring-emerald-500'
-                        : 'border-[#E5E2DA] focus:ring-[#8A9A5B] focus:bg-white'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-[#8A857C] hover:text-[#2D302D] p-1 rounded-md transition-colors"
-                    title={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                {confirmPassword.length > 0 && confirmPassword !== password && (
-                  <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    Passwords do not match
-                  </p>
-                )}
-                {confirmPassword.length > 0 && confirmPassword === password && (
-                  <p className="text-[11px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5 shrink-0" />
-                    Passwords match
-                  </p>
-                )}
-              </div>
+              {confirmPassword.length > 0 && confirmPassword !== password && (
+                <p className="text-[10px] text-rose-600 font-medium flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 shrink-0" />
+                  Passwords do not match
+                </p>
+              )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-[#8A9A5B] hover:bg-[#78884B] disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5 mt-2"
+                className="w-full py-2.5 bg-[#8A9A5B] hover:bg-[#78884B] disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 mt-1"
               >
                 {loading ? (
                   <>
@@ -737,7 +717,7 @@ export const AuthModal: React.FC = () => {
                 )}
               </button>
 
-              <div className="text-center pt-2">
+              <div className="text-center pt-1">
                 <span className="text-xs text-[#8A857C]">Already registered? </span>
                 <button
                   type="button"
@@ -751,41 +731,41 @@ export const AuthModal: React.FC = () => {
           )}
 
           {authMode === 'forgot' && (
-            <form onSubmit={handleForgotSubmit} className="space-y-4">
+            <form onSubmit={handleForgotSubmit} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-[#2D302D] mb-1">Enter Your Registered Email</label>
+                <label className="block text-xs font-bold text-[#2D302D] mb-1">Registered Email</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3" />
+                  <Mail className="w-4 h-4 text-[#8A857C] absolute left-3 top-2.5" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="haseeb2408f@aptechsite.net"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
+                    className="w-full pl-9 pr-3 py-2 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#2D302D] mb-1">Enter New Password</label>
+                <label className="block text-xs font-bold text-[#2D302D] mb-1">New Password</label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-[#8A857C] absolute left-3.5 top-3 z-10 pointer-events-none" />
+                  <Lock className="w-4 h-4 text-[#8A857C] absolute left-3 top-2.5 z-10 pointer-events-none" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
-                    className="w-full pl-10 pr-12 py-2.5 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
+                    className="w-full pl-9 pr-10 py-2 bg-[#F9F8F6] border border-[#E5E2DA] rounded-xl text-xs font-medium text-[#2D302D] focus:ring-2 focus:ring-[#8A9A5B] focus:bg-white outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-2 z-20 p-1.5 text-slate-500 hover:text-slate-900 bg-slate-200/60 hover:bg-slate-300/80 rounded-lg transition-all flex items-center justify-center"
+                    className="absolute right-2 top-1.5 z-20 p-1 text-slate-500 hover:text-slate-900 rounded-md transition-all flex items-center justify-center"
                     title={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4 text-emerald-700" /> : <Eye className="w-4 h-4 text-slate-700" />}
+                    {showPassword ? <EyeOff className="w-3.5 h-3.5 text-emerald-700" /> : <Eye className="w-3.5 h-3.5 text-slate-600" />}
                   </button>
                 </div>
               </div>
@@ -793,7 +773,7 @@ export const AuthModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-[#8A9A5B] hover:bg-[#78884B] disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-[#8A9A5B] hover:bg-[#78884B] disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5"
               >
                 {loading ? (
                   <>
@@ -805,7 +785,7 @@ export const AuthModal: React.FC = () => {
                 )}
               </button>
 
-              <div className="text-center pt-2">
+              <div className="text-center pt-1">
                 <button
                   type="button"
                   onClick={() => setAuthMode('login')}

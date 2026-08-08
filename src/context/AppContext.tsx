@@ -245,7 +245,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [templates, setTemplates] = useState<MessageTemplate[]>(() => {
     const saved = localStorage.getItem('cf_templates');
-    return saved ? JSON.parse(saved) : INITIAL_TEMPLATES;
+    if (saved) {
+      try {
+        const parsed: MessageTemplate[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const existingIds = new Set(parsed.map(t => t.id));
+          const missing = INITIAL_TEMPLATES.filter(it => !existingIds.has(it.id));
+          return [...parsed, ...missing];
+        }
+      } catch { /* ignore */ }
+    }
+    return INITIAL_TEMPLATES;
   });
 
   const [voiceRecordings, setVoiceRecordings] = useState<VoiceRecording[]>(() => {

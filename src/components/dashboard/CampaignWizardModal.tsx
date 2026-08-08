@@ -161,7 +161,7 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
                   <button
                     type="button"
                     onClick={() => setChannel('sms')}
-                    className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                    className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all ${
                       channel === 'sms' 
                         ? 'border-indigo-600 bg-indigo-50/60 text-indigo-700 shadow-xs' 
                         : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
@@ -169,12 +169,13 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
                   >
                     <MessageSquare className="w-6 h-6" />
                     <span className="text-xs font-bold">SMS Text</span>
+                    <span className="text-[10px] opacity-75 font-medium">Twilio SIM Mobile Inbox</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setChannel('whatsapp')}
-                    className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                    className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all ${
                       channel === 'whatsapp' 
                         ? 'border-emerald-600 bg-emerald-50/60 text-emerald-700 shadow-xs' 
                         : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
@@ -182,12 +183,13 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
                   >
                     <Send className="w-6 h-6" />
                     <span className="text-xs font-bold">WhatsApp Business</span>
+                    <span className="text-[10px] opacity-75 font-medium">Meta WhatsApp App Inbox</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setChannel('email')}
-                    className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                    className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all ${
                       channel === 'email' 
                         ? 'border-purple-600 bg-purple-50/60 text-purple-700 shadow-xs' 
                         : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
@@ -195,12 +197,13 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
                   >
                     <Mail className="w-6 h-6" />
                     <span className="text-xs font-bold">Email Message</span>
+                    <span className="text-[10px] opacity-75 font-medium">SMTP Client Inbox</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setChannel('voice')}
-                    className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                    className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all ${
                       channel === 'voice' 
                         ? 'border-amber-600 bg-amber-50/60 text-amber-700 shadow-xs' 
                         : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
@@ -208,6 +211,7 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
                   >
                     <PhoneCall className="w-6 h-6" />
                     <span className="text-xs font-bold">Voice Call Broadcast</span>
+                    <span className="text-[10px] opacity-75 font-medium">Twilio IVR Phone Call</span>
                   </button>
                 </div>
               </div>
@@ -277,7 +281,7 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({ isOpen
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 outline-none"
                 >
                   <option value="">-- Choose a template --</option>
-                  {(templates || []).filter(t => t.channel === channel || channel === 'sms').map(tpl => (
+                  {(templates || []).filter(t => channel === 'voice' ? t.channel === 'voice' : t.channel !== 'voice').map(tpl => (
                     <option key={tpl.id} value={tpl.id}>[{tpl.category}] {tpl.name}</option>
                   ))}
                 </select>

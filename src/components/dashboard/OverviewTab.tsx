@@ -110,6 +110,71 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onOpenCampaignWizard }
         </div>
       </div>
 
+      {/* Quick Start Guide Banner - Extreme Simplicity */}
+      <div className="bg-gradient-to-r from-[#2D302D] to-[#3F433F] text-white p-5 rounded-3xl shadow-sm border border-[#4A4E4A] relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8A9A5B]/20 text-[#8A9A5B] border border-[#8A9A5B]/30 text-[11px] font-bold mb-2">
+              <Zap className="w-3.5 h-3.5 text-[#8A9A5B]" />
+              <span>Quick Start Guide — 3 Easy Steps</span>
+            </div>
+            <h3 className="text-lg font-bold font-display text-white">How to Test & Use ConnectFlow</h3>
+            <p className="text-xs text-[#A8A59E] mt-0.5">
+              Follow these 3 simple steps to test voice calls, messages, and broadcast automation.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setActiveTab('voice')}
+            className="px-5 py-2.5 bg-[#8A9A5B] hover:bg-[#78884B] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md shrink-0 cursor-pointer"
+          >
+            <PhoneCall className="w-4 h-4" />
+            <span>Open Call Simulator 📞</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 pt-4 border-t border-[#4A4E4A]">
+          <div 
+            onClick={() => setActiveTab('contacts')}
+            className="bg-[#222522]/80 hover:bg-[#222522] p-3.5 rounded-2xl border border-[#4A4E4A] cursor-pointer transition-all"
+          >
+            <div className="flex items-center gap-2 text-[#8A9A5B] text-xs font-bold mb-1">
+              <span className="w-5 h-5 rounded-full bg-[#8A9A5B] text-white flex items-center justify-center text-[11px]">1</span>
+              <span>Contacts List (Review Test Contacts)</span>
+            </div>
+            <p className="text-[11px] text-[#A8A59E] leading-relaxed">
+              Check existing test numbers (e.g. 03460895203) in the Contacts tab or add your own custom test contacts.
+            </p>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('voice')}
+            className="bg-[#222522]/80 hover:bg-[#222522] p-3.5 rounded-2xl border border-[#4A4E4A] cursor-pointer transition-all"
+          >
+            <div className="flex items-center gap-2 text-[#8A9A5B] text-xs font-bold mb-1">
+              <span className="w-5 h-5 rounded-full bg-[#8A9A5B] text-white flex items-center justify-center text-[11px]">2</span>
+              <span>AI Voice Call Test 📞</span>
+            </div>
+            <p className="text-[11px] text-[#A8A59E] leading-relaxed">
+              Go to Voice Calling &rarr; Select contact &rarr; Click green "Dial Number Now" button &rarr; Press 1, 2, or 3 on keypad.
+            </p>
+          </div>
+
+          <div 
+            onClick={onOpenCampaignWizard}
+            className="bg-[#222522]/80 hover:bg-[#222522] p-3.5 rounded-2xl border border-[#4A4E4A] cursor-pointer transition-all"
+          >
+            <div className="flex items-center gap-2 text-[#8A9A5B] text-xs font-bold mb-1">
+              <span className="w-5 h-5 rounded-full bg-[#8A9A5B] text-white flex items-center justify-center text-[11px]">3</span>
+              <span>Send Campaign Broadcast 💬</span>
+            </div>
+            <p className="text-[11px] text-[#A8A59E] leading-relaxed">
+              Click "Create Campaign" to launch instant WhatsApp, SMS, Email, or Automated Voice Call broadcasts.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Bento Grid (matching Natural Tones styled design) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Contacts */}

@@ -38,6 +38,27 @@ export const SettingsTab: React.FC = () => {
     setTimezone(business.timezone || 'America/New_York');
   }, [business]);
 
+  // Gateway API credentials state
+  const [twilioSid, setTwilioSid] = useState(() => localStorage.getItem('cf_twilio_sid') || 'AC891902834710293a02');
+  const [twilioToken, setTwilioToken] = useState(() => localStorage.getItem('cf_twilio_token') || '••••••••••••••••••••••••');
+  const [twilioPhone, setTwilioPhone] = useState(() => localStorage.getItem('cf_twilio_phone') || '+18334089520');
+  const [waCloudToken, setWaCloudToken] = useState(() => localStorage.getItem('cf_wa_token') || 'EAAx...90214419');
+  const [waPhoneId, setWaPhoneId] = useState(() => localStorage.getItem('cf_wa_phone_id') || '10928374829102');
+  const [liveGatewayMode, setLiveGatewayMode] = useState<boolean>(() => localStorage.getItem('cf_live_gateway') === 'true');
+  const [gatewaySavedMsg, setGatewaySavedMsg] = useState('');
+
+  const handleSaveGateways = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('cf_twilio_sid', twilioSid);
+    localStorage.setItem('cf_twilio_token', twilioToken);
+    localStorage.setItem('cf_twilio_phone', twilioPhone);
+    localStorage.setItem('cf_wa_token', waCloudToken);
+    localStorage.setItem('cf_wa_phone_id', waPhoneId);
+    localStorage.setItem('cf_live_gateway', liveGatewayMode ? 'true' : 'false');
+    
+    setGatewaySavedMsg('Gateway API Keys & Connection Mode Saved!');
+    setTimeout(() => setGatewaySavedMsg(''), 3000);
+  };
   const [testingGateway, setTestingGateway] = useState<string | null>(null);
   const [testedGateways, setTestedGateways] = useState<Record<string, boolean>>({
     twilio: true,
@@ -198,92 +219,167 @@ export const SettingsTab: React.FC = () => {
 
         {/* Carrier API Gateways Panel */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Server className="w-5 h-5 text-indigo-600" />
-            <h3 className="text-sm font-bold text-slate-900">Carrier API Gateways</h3>
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <Server className="w-5 h-5 text-indigo-600" />
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Carrier API Gateways (Real Phone & WhatsApp Integration)</h3>
+                <p className="text-xs text-slate-500">Connect Twilio & Meta WhatsApp Business Cloud API keys for real phone SIM delivery.</p>
+              </div>
+            </div>
+            {gatewaySavedMsg && (
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                {gatewaySavedMsg}
+              </span>
+            )}
           </div>
 
-          <div className="space-y-3">
-            {/* Twilio SMS */}
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-900">Twilio SMS Gateway</p>
-                <p className="text-[10px] text-slate-500">API Key: AC891...3a02</p>
-              </div>
-
-              <button
-                onClick={() => runGatewayDiagnostic('twilio')}
-                className="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded text-[11px] font-bold flex items-center gap-1"
-              >
-                {testingGateway === 'twilio' ? (
-                  <RefreshCw className="w-3 h-3 animate-spin text-indigo-600" />
-                ) : (
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                )}
-                <span>{testingGateway === 'twilio' ? 'Ping...' : 'Connected'}</span>
-              </button>
-            </div>
-
-            {/* Meta WhatsApp */}
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-900">WhatsApp Business Cloud API</p>
-                <p className="text-[10px] text-slate-500">WABA ID: 9021...4419</p>
-              </div>
-
-              <button
-                onClick={() => runGatewayDiagnostic('whatsapp')}
-                className="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded text-[11px] font-bold flex items-center gap-1"
-              >
-                {testingGateway === 'whatsapp' ? (
-                  <RefreshCw className="w-3 h-3 animate-spin text-indigo-600" />
-                ) : (
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                )}
-                <span>{testingGateway === 'whatsapp' ? 'Ping...' : 'Connected'}</span>
-              </button>
-            </div>
-
-            {/* SMTP Server */}
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-900">SMTP Relay Server</p>
-                <p className="text-[10px] text-slate-500">Host: smtp.sendgrid.net:587</p>
-              </div>
-
-              <button
-                onClick={() => runGatewayDiagnostic('smtp')}
-                className="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded text-[11px] font-bold flex items-center gap-1"
-              >
-                {testingGateway === 'smtp' ? (
-                  <RefreshCw className="w-3 h-3 animate-spin text-indigo-600" />
-                ) : (
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                )}
-                <span>{testingGateway === 'smtp' ? 'Ping...' : 'Connected'}</span>
-              </button>
-            </div>
-
-            {/* Voice IVR Gateway */}
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-900">Voice SIP Trunk</p>
-                <p className="text-[10px] text-slate-500">Trunk: sip.connectflow.voip</p>
-              </div>
-
-              <button
-                onClick={() => runGatewayDiagnostic('voice')}
-                className="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded text-[11px] font-bold flex items-center gap-1"
-              >
-                {testingGateway === 'voice' ? (
-                  <RefreshCw className="w-3 h-3 animate-spin text-indigo-600" />
-                ) : (
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                )}
-                <span>{testingGateway === 'voice' ? 'Ping...' : 'Connected'}</span>
-              </button>
+          {/* Live vs Simulator Mode Banner */}
+          <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2.5">
+            <span className="text-base leading-none">💡</span>
+            <div className="space-y-0.5">
+              <p className="font-bold">Which API Keys Are Required? (Gateway Configuration)</p>
+              <p className="text-[11px] text-amber-900 leading-relaxed">
+                <strong>1. Client / Business API Keys (BYOK Model):</strong> Each business client enters their own <strong>Twilio Account SID / Token</strong> and <strong>Meta WhatsApp Cloud API Token</strong> here. Carrier charges are billed directly to their respective Twilio or Meta account.<br />
+                <strong>2. ConnectFlow SaaS Default Gateway:</strong> If a client does not provide API keys, broadcasts route through ConnectFlow's default platform gateway.<br />
+                <strong>3. Free Demo / Test Mode:</strong> Toggle "Enable Live Production Mode" below to switch to instant zero-cost Demo Mode for testing.
+              </p>
             </div>
           </div>
+
+          <div className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
+            liveGatewayMode ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-indigo-50 border-indigo-200 text-indigo-950'
+          }`}>
+            <div className="flex items-center gap-2">
+              <Sparkles className={`w-4 h-4 ${liveGatewayMode ? 'text-emerald-600' : 'text-indigo-600'}`} />
+              <div>
+                <p className="font-bold">
+                  {liveGatewayMode ? 'Live Production Carrier Mode Active 🌐' : 'Instant Demo / Simulator Mode Active ⚡'}
+                </p>
+                <p className="text-[11px] opacity-80">
+                  {liveGatewayMode 
+                    ? 'Broadcasts use real Twilio & WhatsApp Cloud API endpoints to deliver messages directly to real SIM phone numbers.' 
+                    : 'Broadcasts execute with instant real-time delivery logs, simulated status callbacks, and zero balance cost.'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                const next = !liveGatewayMode;
+                setLiveGatewayMode(next);
+                localStorage.setItem('cf_live_gateway', next ? 'true' : 'false');
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0 ${
+                liveGatewayMode 
+                  ? 'bg-emerald-700 hover:bg-emerald-800 text-white' 
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              }`}
+            >
+              {liveGatewayMode ? 'Switch to Demo Mode' : 'Enable Live Production Mode'}
+            </button>
+          </div>
+
+          <form onSubmit={handleSaveGateways} className="space-y-4 pt-1">
+            {/* Twilio Credentials */}
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-indigo-600" />
+                  <span className="text-xs font-bold text-slate-900">Twilio SMS & Voice API Settings</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => runGatewayDiagnostic('twilio')}
+                  className="px-2 py-0.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded text-[10px] font-bold flex items-center gap-1"
+                >
+                  {testingGateway === 'twilio' ? <RefreshCw className="w-3 h-3 animate-spin text-indigo-600" /> : <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                  <span>{testingGateway === 'twilio' ? 'Ping...' : 'Test Ping'}</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Account SID</label>
+                  <input
+                    type="text"
+                    value={twilioSid}
+                    onChange={e => setTwilioSid(e.target.value)}
+                    placeholder="ACxxxxxxxxxxxxxxxx"
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Auth Token</label>
+                  <input
+                    type="password"
+                    value={twilioToken}
+                    onChange={e => setTwilioToken(e.target.value)}
+                    placeholder="Auth Token"
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Twilio From Number</label>
+                  <input
+                    type="text"
+                    value={twilioPhone}
+                    onChange={e => setTwilioPhone(e.target.value)}
+                    placeholder="+18334089520"
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Meta WhatsApp Cloud API */}
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs font-bold text-slate-900">Meta WhatsApp Business Cloud API Settings</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => runGatewayDiagnostic('whatsapp')}
+                  className="px-2 py-0.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded text-[10px] font-bold flex items-center gap-1"
+                >
+                  {testingGateway === 'whatsapp' ? <RefreshCw className="w-3 h-3 animate-spin text-indigo-600" /> : <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                  <span>{testingGateway === 'whatsapp' ? 'Ping...' : 'Test Ping'}</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Permanent Access Token</label>
+                  <input
+                    type="password"
+                    value={waCloudToken}
+                    onChange={e => setWaCloudToken(e.target.value)}
+                    placeholder="EAAxxxxxxxxxxxx..."
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-0.5">WhatsApp Phone Number ID</label>
+                  <input
+                    type="text"
+                    value={waPhoneId}
+                    onChange={e => setWaPhoneId(e.target.value)}
+                    placeholder="10928374829102"
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+            >
+              Save API Credentials & Gateway Mode
+            </button>
+          </form>
         </div>
 
         {/* Supabase SQL Database & Connectivity Card */}

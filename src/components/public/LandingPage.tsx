@@ -91,7 +91,7 @@ export const LandingPage: React.FC = () => {
           <span>Rule-Based Communication Automation Platform</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#2D302D] max-w-4xl mx-auto leading-tight">
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#2D302D] max-w-4xl mx-auto leading-tight font-display">
           Automate Your Business Communication
         </h1>
 
@@ -197,8 +197,8 @@ export const LandingPage: React.FC = () => {
       {/* Omnichannel Features Section */}
       <section id="features" className="py-20 px-4 lg:px-8 max-w-6xl mx-auto scroll-mt-20">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#8A9A5B] mb-2">Omnichannel Automation</h2>
-          <h3 className="text-3xl font-extrabold text-[#2D302D] tracking-tight">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#8A9A5B] mb-2 font-display">Omnichannel Automation</h2>
+          <h3 className="text-3xl font-extrabold text-[#2D302D] tracking-tight font-display">
             Four Power Channels in One Unified Suite
           </h3>
           <p className="text-[#8A857C] text-sm mt-3">
@@ -277,8 +277,8 @@ export const LandingPage: React.FC = () => {
       <section id="solutions" className="py-20 px-4 lg:px-8 bg-[#2D302D] text-white scroll-mt-20">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[#8A9A5B] mb-2">Tailored for Your Industry</h2>
-            <h3 className="text-3xl font-extrabold tracking-tight">Built for Real Business Needs</h3>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#8A9A5B] mb-2 font-display">Tailored for Your Industry</h2>
+            <h3 className="text-3xl font-extrabold tracking-tight font-display">Built for Real Business Needs</h3>
             <p className="text-[#A8A59E] text-sm mt-3">
               Eliminate manual phone calls and staff follow-ups with automated triggers.
             </p>
@@ -292,7 +292,7 @@ export const LandingPage: React.FC = () => {
                   <div className="w-10 h-10 rounded-2xl bg-[#8A9A5B]/20 text-[#8A9A5B] flex items-center justify-center font-bold mb-4">
                     <Icon className="w-5 h-5" />
                   </div>
-                  <h4 className="text-base font-bold text-white mb-1">{ind.name}</h4>
+                  <h4 className="text-base font-bold text-white mb-1 font-display">{ind.name}</h4>
                   <p className="text-xs text-[#A8A59E] leading-relaxed">{ind.desc}</p>
                 </div>
               );
@@ -304,8 +304,8 @@ export const LandingPage: React.FC = () => {
       {/* Pricing Section */}
       <section id="pricing" className="py-20 px-4 lg:px-8 max-w-6xl mx-auto scroll-mt-20">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#8A9A5B] mb-2">Transparent Pricing</h2>
-          <h3 className="text-3xl font-extrabold text-[#2D302D] tracking-tight">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#8A9A5B] mb-2 font-display">Transparent Pricing</h2>
+          <h3 className="text-3xl font-extrabold text-[#2D302D] tracking-tight font-display">
             Simple Plans for Businesses of Any Scale
           </h3>
           <p className="text-[#8A857C] text-sm mt-3">

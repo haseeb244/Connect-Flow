@@ -171,7 +171,45 @@ export const INITIAL_CONTACTS: Contact[] = [
   }
 ];
 
-export const INITIAL_TEMPLATES: MessageTemplate[] = [];
+export const INITIAL_TEMPLATES: MessageTemplate[] = [
+  {
+    id: 'tpl-1',
+    name: 'Fee Payment Due Reminder (SMS)',
+    channel: 'sms',
+    category: 'Payment',
+    content: 'Dear {{name}}, your fee balance of {{feeDue}} is due on {{appointmentDate}}. Please pay via https://pay.connectflow.io/due or reply 1 for callback.',
+    variables: ['name', 'feeDue', 'appointmentDate'],
+    createdAt: '2026-07-20'
+  },
+  {
+    id: 'tpl-2',
+    name: 'WhatsApp Fee Payment Due Alert',
+    channel: 'whatsapp',
+    category: 'Payment',
+    content: 'Hello {{name}}! 💳 Your fee amount of {{feeDue}} is pending for {{appointmentDate}}. Click here to clear fees: https://pay.connectflow.io/due or reply YES to confirm payment.',
+    variables: ['name', 'feeDue', 'appointmentDate'],
+    createdAt: '2026-07-21'
+  },
+  {
+    id: 'tpl-3',
+    name: 'WhatsApp Appointment Confirmation',
+    channel: 'whatsapp',
+    category: 'Appointment',
+    content: 'Hello {{name}}! 🏥 This is a reminder for your upcoming appointment on {{appointmentDate}}. Reply YES to confirm or NO to reschedule.',
+    variables: ['name', 'appointmentDate'],
+    createdAt: '2026-07-22'
+  },
+  {
+    id: 'tpl-4',
+    name: 'Email Special Client Offer & Update',
+    channel: 'email',
+    category: 'Promotional',
+    subject: 'Exclusive VIP Business Update for {{name}}',
+    content: 'Hi {{name}},\n\nThank you for choosing ConnectFlow. We have unlocked exclusive access to your account portal. Click below to view your current status:\n\nhttps://portal.connectflow.io/account\n\nBest regards,\nConnectFlow Team',
+    variables: ['name'],
+    createdAt: '2026-07-23'
+  }
+];
 
 export const INITIAL_VOICE_RECORDINGS: VoiceRecording[] = [
   {
